@@ -7,6 +7,10 @@ import (
 	"runtime"
 )
 
+var (
+	logger = log.New(log.Writer(), "corretto: ", log.LstdFlags)
+)
+
 type Schema map[string]*Validator
 
 // Interface for the validator
@@ -36,7 +40,7 @@ func optional[T any](params []T) T {
 		_, file, line, _ := runtime.Caller(2)
 		filename := filepath.Base(file)
 
-		log.Printf("WARN corretto: %s (%s:%d): calling with more than one parameter, only the first one will be used", caller.Name(), filename, line)
+		logger.Printf("WARN %s (%s:%d): calling with more than one parameter, only the first one will be used", caller.Name(), filename, line)
 	}
 
 	// Returns the zero value of the type
@@ -62,7 +66,7 @@ func Validate[T validable](v *T) error {
 		// Check if the field exists in the struct
 		t := reflect.TypeOf(v).Elem()
 		if _, ok := t.FieldByName(key); !ok {
-			log.Panicf("corretto: field %s not found in struct %s", key, t.Name())
+			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
 		validator.field = reflect.ValueOf(v).Elem().FieldByName(key)

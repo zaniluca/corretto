@@ -19,7 +19,7 @@ func (v *Validator) Matches(regex string) *Validator {
 
 	v.validations = append(v.validations, func() error {
 		if v.field.Kind() != reflect.String {
-			panic("corretto: Matches() can only be used with strings")
+			logger.Panic("Matches() can only be used with strings")
 		}
 		if !r.MatchString(v.field.String()) {
 			return fmt.Errorf("%s is not in the correct format", v.field.String())

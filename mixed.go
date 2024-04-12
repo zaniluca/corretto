@@ -2,7 +2,6 @@ package corretto
 
 import (
 	"fmt"
-	"log"
 	"reflect"
 )
 
@@ -33,7 +32,7 @@ func (v *Validator) Min(min int) *Validator {
 				return fmt.Errorf("Min: %d", min)
 			}
 		default:
-			log.Panicf("corretto: unsopported type %s for Min(), can only be used with int, float or string", v.field.Type().Kind())
+			logger.Panicf("unsopported type %s for Min(), can only be used with int, float or string", v.field.Type().Kind())
 		}
 
 		return nil
