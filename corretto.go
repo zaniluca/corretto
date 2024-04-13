@@ -13,17 +13,16 @@ var (
 
 type Schema map[string]*Validator
 
-// Interface for the validator
-type validable interface {
-	ValidationSchema() Schema
-}
-
 type ValidationFunc func() error
+
+type Context any
+
+type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
 // Represents a validator for a field
 type Validator struct {
 	// The context of the validation, usually the struct that contains the field
-	ctx         validable
+	ctx         Context
 	fieldName   string
 	field       reflect.Value
 	validations []ValidationFunc
@@ -61,18 +60,16 @@ func Field(fieldName ...string) *Validator {
 	return &Validator{fieldName: name}
 }
 
-func Validate[T validable](v *T) error {
-	schema := (*v).ValidationSchema()
-
-	for key, validator := range schema {
+func (s Schema) Parse(value any) error {
+	for key, validator := range s {
 		// Check if the field exists in the struct
-		t := reflect.TypeOf(v).Elem()
+		t := reflect.TypeOf(value).Elem()
 		if _, ok := t.FieldByName(key); !ok {
 			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
-		validator.field = reflect.ValueOf(v).Elem().FieldByName(key)
-		validator.ctx = *v
+		validator.field = reflect.ValueOf(value).Elem().FieldByName(key)
+		validator.ctx = value
 
 		for _, checkValidation := range validator.validations {
 			err := checkValidation()

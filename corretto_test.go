@@ -1,29 +1,25 @@
-package corretto_test
+package corretto
 
 import (
-	"corretto"
+	"io"
 	"testing"
 )
 
-type T1 struct {
-	Name string
-}
+func TestParse(t *testing.T) {
+	logger.SetOutput(io.Discard)
 
-func (t T1) ValidationSchema() corretto.Schema {
-	return corretto.Schema{
-		"Name":      corretto.Field().Min(3),
-		"WrongName": corretto.Field().Min(10),
-	}
-}
-
-func TestValidate(t *testing.T) {
 	t.Run("panics if schema has unknown field", func(t *testing.T) {
 		defer func() {
 			if r := recover(); r == nil {
-				t.Errorf("Validate() should have panicked")
+				t.Errorf("Parse() should have panicked")
 			}
 		}()
 
-		corretto.Validate(&T1{Name: "Name"})
+		schema := Schema{
+			"Name":            Field().Min(3),
+			"UnexistingField": Field().Min(10),
+		}
+
+		_ = schema.Parse(&struct{ Name string }{Name: "John"})
 	})
 }
