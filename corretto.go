@@ -18,13 +18,15 @@ type validable interface {
 	ValidationSchema() Schema
 }
 
+type ValidationFunc func() error
+
 // Represents a validator for a field
 type Validator struct {
-	// Field name to be displayed in the error message
-	// Can be customized by passing a string to the `Field()` function
+	// The context of the validation, usually the struct that contains the field
+	ctx         validable
 	fieldName   string
 	field       reflect.Value
-	validations []func() error
+	validations []ValidationFunc
 }
 
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
@@ -70,6 +72,7 @@ func Validate[T validable](v *T) error {
 		}
 
 		validator.field = reflect.ValueOf(v).Elem().FieldByName(key)
+		validator.ctx = *v
 
 		for _, checkValidation := range validator.validations {
 			err := checkValidation()
