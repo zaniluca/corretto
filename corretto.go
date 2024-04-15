@@ -15,6 +15,17 @@ type Schema map[string]*Validator
 
 type ValidationFunc func() error
 
+// Context is the whole struct that contains the field to be validated
+// It can be used to access other fields in the struct and perform validations based on them
+// Although it is defined as any, it is actually a POINTER to the struct
+//
+// It is recommended to use a type assertion to convert it to the correct type
+// Example:
+//
+//	u, ok := ctx.(*User)
+//	if !ok {
+//	   panic("Invalid context")
+//	}
 type Context any
 
 type CustomValidationFunc func(ctx Context, field reflect.Value) error
@@ -53,23 +64,54 @@ func optional[T any](params []T) T {
 // Although you can pass fieldName as a variadic parameter this is done only to make it optional.
 // If you pass more than one parameter, only the first one will be used.
 //
-// Example: Field("Name")
+// Example:
+//
+//	Field("Name")
 func Field(fieldName ...string) *Validator {
 	name := optional(fieldName)
 
 	return &Validator{fieldName: name}
 }
 
+// Parse validates the struct fields based on the schema
+// It returns an error if any of the validations fail or nil if all validations pass
+//
+// Example:
+//
+//		schema := Schema{
+//			"FirstName": Field("Name").Min(3).Test(customValidation),
+//			"Age":       Field().Min(18),
+//			"Email":     Field().Email(),
+//		}
+//		user := &User{
+//			FirstName: "John",
+//			Age:       17,
+//			Email:     "john@doe.com",
+//		}
+//	    // will error because Age is less than 18
+//		// Remember that the struct MUST BE A POINTER
+//		err := schema.Parse(user)
 func (s Schema) Parse(value any) error {
 	for key, validator := range s {
+
+		var t reflect.Type
+		if reflect.TypeOf(value).Kind() == reflect.Ptr {
+			t = reflect.TypeOf(value).Elem()
+		} else {
+			logger.Panicf("value must be a pointer to a struct")
+		}
+
 		// Check if the field exists in the struct
-		t := reflect.TypeOf(value).Elem()
 		if _, ok := t.FieldByName(key); !ok {
 			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
 		validator.field = reflect.ValueOf(value).Elem().FieldByName(key)
 		validator.ctx = value
+		// If no custom field name is provided, use the struct field name
+		if validator.fieldName == "" {
+			validator.fieldName = key
+		}
 
 		for _, checkValidation := range validator.validations {
 			err := checkValidation()
@@ -80,4 +122,11 @@ func (s Schema) Parse(value any) error {
 	}
 
 	return nil
+}
+
+// Concat adds the fields from another schema to the current schema
+func (s Schema) Concat(other Schema) {
+	for key, value := range other {
+		s[key] = value
+	}
 }
