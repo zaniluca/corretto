@@ -78,19 +78,19 @@ func Field(fieldName ...string) *Validator {
 //
 // Example:
 //
-//		schema := Schema{
-//			"FirstName": Field("Name").Min(3).Test(customValidation),
-//			"Age":       Field().Min(18),
-//			"Email":     Field().Email(),
-//		}
-//		user := &User{
-//			FirstName: "John",
-//			Age:       17,
-//			Email:     "john@doe.com",
-//		}
-//	    // will error because Age is less than 18
-//		// Remember that the struct MUST BE A POINTER
-//		err := schema.Parse(user)
+//	schema := Schema{
+//		"FirstName": Field("Name").Min(3).Test(customValidation),
+//		"Age":       Field().Min(18),
+//		"Email":     Field().Email(),
+//	}
+//	user := &User{
+//		FirstName: "John",
+//		Age:       17,
+//		Email:     "john@doe.com",
+//	}
+//
+//	// Remember that the struct MUST BE A POINTER
+//	err := schema.Parse(user) // ValidationError{Message: "Age must be at least 18"}
 func (s Schema) Parse(value any) error {
 	for key, validator := range s {
 
@@ -129,4 +129,9 @@ func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value
 	}
+}
+
+type ValidationOpts struct {
+	// The error message to be displayed if the validation fails
+	Message string
 }

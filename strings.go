@@ -1,9 +1,12 @@
 package corretto
 
 import (
-	"fmt"
 	"reflect"
 	"regexp"
+)
+
+const (
+	matchesErrorMsg = "%v is not in the correct format"
 )
 
 const (
@@ -14,21 +17,36 @@ var (
 	emailRegex = regexp.MustCompile(emailRegexString)
 )
 
-func (v *Validator) Matches(regex string) *Validator {
+// Matches checks if the field matches the provided regex pattern
+// It can only be used with [string]
+//
+// if the string is empty, it will return true, use `Required()` to check for empty strings
+//
+// If the field is not a string, it will panic
+func (v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator {
+	vopts := optional(opts)
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
 		if v.field.Kind() != reflect.String {
 			logger.Panic("Matches() can only be used with strings")
 		}
-		if !r.MatchString(v.field.String()) {
-			return fmt.Errorf("%s is not in the correct format", v.field.String())
+		if !r.MatchString(v.field.String()) && v.field.String() != "" {
+			return newValidationError(matchesErrorMsg, vopts, v.fieldName)
 		}
 		return nil
 	})
 	return v
 }
 
-func (v *Validator) Email() *Validator {
-	return v.Matches(emailRegex.String())
+// Email checks if the field is a valid email address format
+// It can only be used with [string]
+//
+// if the string is empty, it will return true, use `Required()` to check for empty strings
+//
+// If the field is not a string, it will panic
+func (v *Validator) Email(opts ...ValidationOpts) *Validator {
+	vopts := optional(opts)
+
+	return v.Matches(emailRegex.String(), vopts)
 }
