@@ -13,7 +13,7 @@ func TestPredefinedRegex(t *testing.T) {
 			"Email": Field().Email(),
 		}
 
-		testCases := []struct {
+		tests := []struct {
 			name        string
 			email       string
 			expectError bool
@@ -24,7 +24,7 @@ func TestPredefinedRegex(t *testing.T) {
 			{"email with subdomain", "foo@sub.bar.com", false},
 		}
 
-		for _, tc := range testCases {
+		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
 				err := schema.Parse(&struct{ Email string }{Email: tc.email})
 				if tc.expectError && err == nil {

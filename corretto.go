@@ -1,6 +1,7 @@
 package corretto
 
 import (
+	"encoding/json"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -32,14 +33,20 @@ type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
 // Represents a validator for a field
 type Validator struct {
-	// The context of the validation, usually the struct that contains the field
-	ctx         Context
+	ctx         Context // The context of the validation, usually the struct that contains the field
 	fieldName   string
 	field       reflect.Value
 	validations []ValidationFunc
 }
 
+// ValidationOpts is a struct that contains the additional options for a validation
+type ValidationOpts struct {
+	// The error message to be displayed if the validation fails
+	Message string
+}
+
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
+// If no parameter is passed, it returns the zero value of the type
 func optional[T any](params []T) T {
 	if len(params) == 1 {
 		return params[0]
@@ -124,14 +131,26 @@ func (s Schema) Parse(value any) error {
 	return nil
 }
 
+// Unmarshal parses the JSON data into the struct and validates the fields based on the schema
+func (s Schema) Unmarshal(data []byte, v any) error {
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	return s.Parse(v)
+}
+
+// MustParse behaves the same as Parse but panics if any of the validations fail
+func (s Schema) MustParse(value any) {
+	err := s.Parse(value)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // Concat adds the fields from another schema to the current schema
 func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value
 	}
-}
-
-type ValidationOpts struct {
-	// The error message to be displayed if the validation fails
-	Message string
 }

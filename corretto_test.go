@@ -23,29 +23,80 @@ func TestParse(t *testing.T) {
 	})
 }
 
+func TestUnmarshal(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	tests := []struct {
+		name        string
+		bytes       []byte
+		dst         any
+		expectError bool
+	}{
+		{
+			name:  "valid json and valid data",
+			bytes: []byte(`{"Name": "John", "Age": 30}`),
+			dst: &struct {
+				Name string
+				Age  int
+			}{},
+			expectError: false,
+		},
+		{
+			name:  "valid json and invalid data",
+			bytes: []byte(`{"Name": "John", "Age": 12}`),
+			dst: &struct {
+				Name string
+				Age  int
+			}{},
+			expectError: true,
+		},
+		{
+			name:  "invalid json",
+			bytes: []byte(`{"Name": "John", "Age": `),
+			dst: &struct {
+				Name string
+				Age  int
+			}{},
+			expectError: true,
+		},
+	}
+
+	schema := Schema{
+		"Name": Field().Required(),
+		"Age":  Field().Required().Min(18),
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := schema.Unmarshal(tt.bytes, tt.dst)
+			if tt.expectError && err == nil {
+				t.Errorf("Unmarshal() should have returned an error")
+			}
+		})
+	}
+}
+
 func TestConcat(t *testing.T) {
 	logger.SetOutput(io.Discard)
 
-	t.Run("schema concatenation works", func(t *testing.T) {
-		s := &struct{ Field1, Field2 string }{Field1: "John"}
-		schema := Schema{
-			"Field1": Field().Required(),
-		}
-		otherSchema := Schema{
-			"Field2": Field().Required(),
-		}
-		err := schema.Parse(s)
-		if err != nil {
-			t.Errorf("Parse() should have returned nil because Field2 is not required")
-		}
+	s := &struct{ Field1, Field2 string }{Field1: "John"}
+	schema := Schema{
+		"Field1": Field().Required(),
+	}
+	otherSchema := Schema{
+		"Field2": Field().Required(),
+	}
+	err := schema.Parse(s)
+	if err != nil {
+		t.Errorf("Parse() should have returned nil because Field2 is not required")
+	}
 
-		schema.Concat(otherSchema)
+	schema.Concat(otherSchema)
 
-		err = schema.Parse(s)
-		if err == nil {
-			t.Errorf("Parse() should have returned an error because Field2 is required")
-		}
-	})
+	err = schema.Parse(s)
+	if err == nil {
+		t.Errorf("Parse() should have returned an error because Field2 is required")
+	}
 }
 
 func TestValidationOpts(t *testing.T) {
