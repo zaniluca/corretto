@@ -55,3 +55,12 @@ func (v *Validator) Min(min int, opts ...ValidationOpts) *Validator {
 	})
 	return v
 }
+
+// Schema checks if the field can be parsed by the provided schema
+// Use it to validate nested structs
+func (v *Validator) Schema(s Schema) *Validator {
+	v.validations = append(v.validations, func() error {
+		return s.Parse(v.field.Interface())
+	})
+	return v
+}

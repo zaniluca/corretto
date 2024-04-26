@@ -144,3 +144,41 @@ func TestValidationOpts(t *testing.T) {
 		}
 	})
 }
+
+func TestNestedSchemas(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	s2 := Schema{
+		"NestedField1": Field().Min(4),
+	}
+
+	s1 := Schema{
+		"Field1":      Field().Required(),
+		"NestedField": Field().Schema(s2),
+	}
+
+	type Nested struct {
+		NestedField1 int
+	}
+
+	type Struct struct {
+		Field1      string
+		NestedField *Nested
+	}
+
+	v := &Struct{
+		Field1: "John",
+		NestedField: &Nested{
+			NestedField1: 3,
+		},
+	}
+
+	err := s1.Parse(*v)
+
+	if err == nil {
+		t.Errorf("Parse() should have returned an error because NestedField1 is not valid")
+	}
+	if err.Error() != "NestedField1 must be at least 4" {
+		t.Errorf("Parse() should have returned the correct error message")
+	}
+}
