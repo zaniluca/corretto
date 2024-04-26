@@ -50,6 +50,30 @@ func main() {
 
 ```
 
+**Table of Contents**
+
+- [Getting Started](#getting-started)
+- [The Schema](#the-schema)
+  - [Validation](#validation)
+  - [Custom validations](#custom-validations)
+    - [Customizing errors](#customizing-errors)
+  - [Composition and Reuse](#composition-and-reuse)
+- [API](#api)
+  - [`corretto`](#corretto)
+    - [`Schema`](#schema)
+    - [`Field(fieldName ...string) *Validator`](#fieldfieldname-string-validator)
+    - [`(s Schema) Parse(value any) error`](#s-schema-parsevalue-any-error)
+    - [`(s Schema) MustParse(value any)`](#s-schema-mustparsevalue-any)
+    - [`(s Schema) Concat(other Schema)`](#s-schema-concatother-schema)
+    - [`(s Schema) Unmarshal(data []byte, value any) error`](#s-schema-unmarshaldata-byte-value-any-error)
+  - [Mixed](#mixed)
+    - [`(*Validator) Required(opts ...ValidationOpts) *Validator`](#validator-requiredopts-validationopts-validator)
+    - [`(*Validator) Min(min int, opts ...ValidationOpts) *Validator`](#validator-minmin-int-opts-validationopts-validator)
+    - [`(*Validator) Max(max int, opts ...ValidationOpts) *Validator`](#validator-maxmax-int-opts-validationopts-validator)
+  - [Strings](#strings)
+    - [`(v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator`](#v-validator-matchesregex-string-opts-validationopts-validator)
+    - [`(v *Validator) Email(opts ...ValidationOpts) *Validator`](#v-validator-emailopts-validationopts-validator)
+
 ## The Schema
 
 Corretto's `Schema` is nothing more than a map of fields to their respective validation rules. Each Field in the schema, which must be explicitly declare with the `Field()` func can have a number of methods attached to it, which define how the field should be parsed and validated.
@@ -127,7 +151,7 @@ userSchema := nameSchema.Concat(c.Schema{
 })
 ```
 
-## API
+## Package
 
 ### `corretto`
 
