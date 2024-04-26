@@ -173,7 +173,7 @@ func TestNestedSchemas(t *testing.T) {
 		},
 	}
 
-	err := s1.Parse(*v)
+	err := s1.Parse(v)
 
 	if err == nil {
 		t.Errorf("Parse() should have returned an error because NestedField1 is not valid")
