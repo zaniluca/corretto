@@ -18,9 +18,9 @@ var (
 )
 
 // Matches checks if the field matches the provided regex pattern
-// It can only be used with [string]
+// It can only be used with string
 //
-// if the string is empty, it will return true, use [Required] to check for empty strings
+// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
 //
 // If the field is not a string, it will panic
 func (v *Validator) Matches(regex string, msg ...string) *Validator {
@@ -40,9 +40,9 @@ func (v *Validator) Matches(regex string, msg ...string) *Validator {
 }
 
 // Email checks if the field is a valid email address format
-// It can only be used with [string]
+// It can only be used with string
 //
-// if the string is empty, it will return true, use [Required] to check for empty strings
+// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
 //
 // If the field is not a string, it will panic
 func (v *Validator) Email(msg ...string) *Validator {

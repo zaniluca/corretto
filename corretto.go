@@ -139,7 +139,7 @@ func (s Schema) Unmarshal(data []byte, v any) error {
 	return s.Parse(v)
 }
 
-// MustParse behaves the same as [Parse] but panics if any of the validations fail
+// MustParse behaves the same as [Schema.Parse] but panics if any of the validations fail
 func (s Schema) MustParse(value any) {
 	err := s.Parse(value)
 	if err != nil {
@@ -147,7 +147,7 @@ func (s Schema) MustParse(value any) {
 	}
 }
 
-// MustUnmarshal behaves the same as [Unmarshal] but panics if any of the validations fail or if the JSON data cannot be parsed
+// MustUnmarshal behaves the same as [Schema.Unmarshal] but panics if any of the validations fail or if the JSON data cannot be parsed
 func (s Schema) MustUnmarshal(data []byte, v any) {
 	err := s.Unmarshal(data, v)
 	if err != nil {

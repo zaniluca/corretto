@@ -214,3 +214,7 @@ if the string is empty, it will return true, use `Required()` to check for empty
 Corretto also provides some predefined regex validations:
 
 #### `(v *Validator) Email(msg ...string) *Validator`
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details

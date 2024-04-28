@@ -27,7 +27,7 @@ func (v *Validator) Required(msg ...string) *Validator {
 }
 
 // Min checks if the field is greater than or equal to the provided value
-// It can be used with [int], [float] or [string]
+// It can be used with int, float or string
 //
 // If the field is not supported, it will panic
 func (v *Validator) Min(min int, msg ...string) *Validator {
