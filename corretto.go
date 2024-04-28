@@ -33,16 +33,10 @@ type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
 // Represents a validator for a field
 type Validator struct {
-	ctx         Context // The context of the validation, usually the struct that contains the field
-	fieldName   string
-	field       reflect.Value
-	validations []ValidationFunc
-}
-
-// ValidationOpts is a struct that contains the additional options for a validation
-type ValidationOpts struct {
-	// The error message to be displayed if the validation fails
-	Message string
+	ctx         Context          // The context of the validation, usually the struct that contains the field
+	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
+	field       reflect.Value    // The value of the field to be validated
+	validations []ValidationFunc // The list of validations to be performed
 }
 
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
@@ -85,19 +79,20 @@ func Field(fieldName ...string) *Validator {
 //
 // Example:
 //
-//	schema := Schema{
-//		"FirstName": Field("Name").Min(3).Test(customValidation),
-//		"Age":       Field().Min(18),
-//		"Email":     Field().Email(),
-//	}
-//	user := &User{
-//		FirstName: "John",
-//		Age:       17,
-//		Email:     "john@doe.com",
-//	}
+//		schema := Schema{
+//			"FirstName": Field("Name").Min(3).Test(customValidation),
+//			"Age":       Field().Min(18),
+//			"Email":     Field().Email(),
+//		}
+//		user := User{
+//			FirstName: "John",
+//			Age:       17,
+//			Email:     "john@doe.com",
+//		}
 //
-//	// Remember that the struct MUST BE A POINTER
-//	err := schema.Parse(user) // ValidationError{Message: "Age must be at least 18"}
+//		err := schema.Parse(user) // ValidationError{Message: "Age must be at least 18"}
+//	 	// you can pass a reference too
+//		err := schema.Parse(&user) // ValidationError{Message: "Age must be at least 18"}
 func (s Schema) Parse(value any) error {
 	for key, validator := range s {
 		var t reflect.Type
@@ -144,7 +139,7 @@ func (s Schema) Unmarshal(data []byte, v any) error {
 	return s.Parse(v)
 }
 
-// MustParse behaves the same as Parse but panics if any of the validations fail
+// MustParse behaves the same as [Parse] but panics if any of the validations fail
 func (s Schema) MustParse(value any) {
 	err := s.Parse(value)
 	if err != nil {
@@ -152,7 +147,15 @@ func (s Schema) MustParse(value any) {
 	}
 }
 
-// Concat adds the fields from another schema to the current schema
+// MustUnmarshal behaves the same as [Unmarshal] but panics if any of the validations fail or if the JSON data cannot be parsed
+func (s Schema) MustUnmarshal(data []byte, v any) {
+	err := s.Unmarshal(data, v)
+	if err != nil {
+		panic(err)
+	}
+}
+
+// Concat adds the fields from another [Schema] to the current schema
 func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value

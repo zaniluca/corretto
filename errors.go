@@ -13,9 +13,9 @@ func (v ValidationErr) Error() string {
 	return v.Err.Error()
 }
 
-func newValidationError(msg string, opts ValidationOpts, args ...any) ValidationErr {
-	if opts.Message != "" {
-		msg = opts.Message
+func newValidationError(msg string, cmsg string, args ...any) ValidationErr {
+	if cmsg != "" {
+		msg = cmsg
 	}
 
 	// Count the number of %v placeholders in the format string

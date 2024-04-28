@@ -13,13 +13,13 @@ const (
 // It can be used with any type that has a zero value
 //
 // If the field is not supported, it will panic
-func (v *Validator) Required(opts ...ValidationOpts) *Validator {
-	vopts := optional(opts)
+func (v *Validator) Required(msg ...string) *Validator {
+	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
 		// Check if the value is at its zero value
 		if v.field.IsZero() {
-			return newValidationError(requiredErrorMsg, vopts, v.fieldName)
+			return newValidationError(requiredErrorMsg, cmsg, v.fieldName)
 		}
 		return nil
 	})
@@ -30,22 +30,22 @@ func (v *Validator) Required(opts ...ValidationOpts) *Validator {
 // It can be used with [int], [float] or [string]
 //
 // If the field is not supported, it will panic
-func (v *Validator) Min(min int, opts ...ValidationOpts) *Validator {
-	vopts := optional(opts)
+func (v *Validator) Min(min int, msg ...string) *Validator {
+	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
 		switch v.field.Type().Kind() {
 		case reflect.Int:
 			if v.field.Int() < int64(min) {
-				return newValidationError(minErrorMsg, vopts, v.fieldName, min)
+				return newValidationError(minErrorMsg, cmsg, v.fieldName, min)
 			}
 		case reflect.Float64:
 			if v.field.Float() < float64(min) {
-				return newValidationError(minErrorMsg, vopts, v.fieldName, min)
+				return newValidationError(minErrorMsg, cmsg, v.fieldName, min)
 			}
 		case reflect.String:
 			if len(v.field.String()) < min {
-				return newValidationError(minErrorMsg+" characters long", vopts, v.fieldName, min)
+				return newValidationError(minErrorMsg+" characters long", cmsg, v.fieldName, min)
 			}
 		default:
 			logger.Panicf("unsopported type %v for Min(), can only be used with int, float or string", v.field.Type().Kind())

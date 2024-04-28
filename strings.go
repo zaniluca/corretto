@@ -20,11 +20,11 @@ var (
 // Matches checks if the field matches the provided regex pattern
 // It can only be used with [string]
 //
-// if the string is empty, it will return true, use `Required()` to check for empty strings
+// if the string is empty, it will return true, use [Required] to check for empty strings
 //
 // If the field is not a string, it will panic
-func (v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator {
-	vopts := optional(opts)
+func (v *Validator) Matches(regex string, msg ...string) *Validator {
+	cmsg := optional(msg)
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
@@ -32,7 +32,7 @@ func (v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator {
 			logger.Panic("Matches() can only be used with strings")
 		}
 		if !r.MatchString(v.field.String()) && v.field.String() != "" {
-			return newValidationError(matchesErrorMsg, vopts, v.fieldName)
+			return newValidationError(matchesErrorMsg, cmsg, v.fieldName)
 		}
 		return nil
 	})
@@ -42,11 +42,9 @@ func (v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator {
 // Email checks if the field is a valid email address format
 // It can only be used with [string]
 //
-// if the string is empty, it will return true, use `Required()` to check for empty strings
+// if the string is empty, it will return true, use [Required] to check for empty strings
 //
 // If the field is not a string, it will panic
-func (v *Validator) Email(opts ...ValidationOpts) *Validator {
-	vopts := optional(opts)
-
-	return v.Matches(emailRegex.String(), vopts)
+func (v *Validator) Email(msg ...string) *Validator {
+	return v.Matches(emailRegex.String(), msg...)
 }

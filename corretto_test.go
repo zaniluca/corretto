@@ -148,7 +148,7 @@ func TestValidationOpts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				schema := Schema{
-					"Field1": Field().Min(10, ValidationOpts{Message: tt.customMessage}),
+					"Field1": Field().Min(10, tt.customMessage),
 				}
 
 				err := schema.Parse(&struct{ Field1 int }{Field1: 5})

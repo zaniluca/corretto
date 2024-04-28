@@ -1,6 +1,6 @@
 # Corretto
 
-Corretto ☕ (Italian for "Free from errors") is a simple and essential schema validation package for go structs. It is designed with code readability in mind.
+Corretto (Italian for "Free from errors") is a simple and essential schema validation package for go structs. It is designed with code readability in mind.
 
 The library is inspired by popular JavaScript libraries like [Yup](https://github.com/jquense/yup) and [Zod](https://github.com/colinhacks/zod), and it aims to provide a similar experience in Go.
 
@@ -67,12 +67,12 @@ func main() {
     - [`(s Schema) Concat(other Schema)`](#s-schema-concatother-schema)
     - [`(s Schema) Unmarshal(data []byte, value any) error`](#s-schema-unmarshaldata-byte-value-any-error)
   - [Mixed](#mixed)
-    - [`(*Validator) Required(opts ...ValidationOpts) *Validator`](#validator-requiredopts-validationopts-validator)
-    - [`(*Validator) Min(min int, opts ...ValidationOpts) *Validator`](#validator-minmin-int-opts-validationopts-validator)
-    - [`(*Validator) Max(max int, opts ...ValidationOpts) *Validator`](#validator-maxmax-int-opts-validationopts-validator)
+    - [`(*Validator) Required(msg ...string) *Validator`](#validator-requiredopts-validationopts-validator)
+    - [`(*Validator) Min(min int, msg ...string) *Validator`](#validator-minmin-int-opts-validationopts-validator)
+    - [`(*Validator) Max(max int, msg ...string) *Validator`](#validator-maxmax-int-opts-validationopts-validator)
   - [Strings](#strings)
-    - [`(v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator`](#v-validator-matchesregex-string-opts-validationopts-validator)
-    - [`(v *Validator) Email(opts ...ValidationOpts) *Validator`](#v-validator-emailopts-validationopts-validator)
+    - [`(v *Validator) Matches(regex string, msg ...string) *Validator`](#v-validator-matchesregex-string-opts-validationopts-validator)
+    - [`(v *Validator) Email(msg ...string) *Validator`](#v-validator-emailopts-validationopts-validator)
 
 ## The Schema
 
@@ -124,12 +124,12 @@ If you want to customize the entire error message, you can pass a second argumen
 // The error message will be "Name not long enough"
 s := c.Schema{
 	"FirstName": c.Field("Name")
-                  .Min(3, ValidationOpts{Message: "%v not long enough (min %v)"}),
+                  .Min(3, "%v not long enough (min %v)"),
 	// ...
 }
 ```
 
-> As you can see `Message` accepts passing a string with placeholders like you do in the `fmt` package. The first placeholder will be replaced with the field name, and the second with the value of the `Min(3)` method (in this case, 3), if the method has more than one argument or none it will have an according number of placeholders.
+> As you can see `Min` accepts passing a string with placeholders like you do in the `fmt` package. The first placeholder will be replaced with the field name, and the second with the value of the `Min(3)` method (in this case, 3), if the method has more than one argument or none it will have an according number of placeholders.
 
 ### Composition and Reuse
 
@@ -189,15 +189,15 @@ A list of all the methods that can be called on a `*Validator` with no specific 
 
 > Mixed methods are available for most of the basic types like `int`, `string`, `float`, etc. If a type is not supported they will **panic**
 
-#### `(*Validator) Required(opts ...ValidationOpts) *Validator`
+#### `(*Validator) Required(msg ...string) *Validator`
 
 Checks that the value is not `nil` or the zero value for the type.
 
-#### `(*Validator) Min(min int, opts ...ValidationOpts) *Validator`
+#### `(*Validator) Min(min int, msg ...string) *Validator`
 
 Checks that the value is greater than or equal to the given minimum value.
 
-#### `(*Validator) Max(max int, opts ...ValidationOpts) *Validator`
+#### `(*Validator) Max(max int, msg ...string) *Validator`
 
 Checks that the value is less than or equal to the given maximum value.
 
@@ -205,7 +205,7 @@ Checks that the value is less than or equal to the given maximum value.
 
 Methods that can be called on a `*Validator` applied to a `string`
 
-#### `(v *Validator) Matches(regex string, opts ...ValidationOpts) *Validator`
+#### `(v *Validator) Matches(regex string, msg ...string) *Validator`
 
 Matches checks if the field matches the provided regex pattern
 
@@ -213,4 +213,4 @@ if the string is empty, it will return true, use `Required()` to check for empty
 
 Corretto also provides some predefined regex validations:
 
-#### `(v *Validator) Email(opts ...ValidationOpts) *Validator`
+#### `(v *Validator) Email(msg ...string) *Validator`
