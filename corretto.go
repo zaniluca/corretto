@@ -18,12 +18,12 @@ type ValidationFunc func() error
 
 // Context is the whole struct that contains the field to be validated
 // It can be used to access other fields in the struct and perform validations based on them
-// Although it is defined as any, it is actually a POINTER to the struct
+// Although it is defined as any, it is actually the struct that contains the field to be validated
 //
 // It is recommended to use a type assertion to convert it to the correct type
 // Example:
 //
-//	u, ok := ctx.(*User)
+//	u, ok := ctx.(User)
 //	if !ok {
 //	   panic("Invalid context")
 //	}
@@ -100,12 +100,16 @@ func Field(fieldName ...string) *Validator {
 //	err := schema.Parse(user) // ValidationError{Message: "Age must be at least 18"}
 func (s Schema) Parse(value any) error {
 	for key, validator := range s {
-
 		var t reflect.Type
+		var v reflect.Value
+
+		// Check if the value is a pointer to a struct or a struct value
 		if reflect.TypeOf(value).Kind() == reflect.Ptr {
 			t = reflect.TypeOf(value).Elem()
+			v = reflect.ValueOf(value).Elem()
 		} else {
-			logger.Panicf("value must be a pointer to a struct")
+			t = reflect.TypeOf(value)
+			v = reflect.ValueOf(value)
 		}
 
 		// Check if the field exists in the struct
@@ -113,7 +117,7 @@ func (s Schema) Parse(value any) error {
 			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
-		validator.field = reflect.ValueOf(value).Elem().FieldByName(key)
+		validator.field = v.FieldByName(key)
 		validator.ctx = value
 		// If no custom field name is provided, use the struct field name
 		if validator.fieldName == "" {

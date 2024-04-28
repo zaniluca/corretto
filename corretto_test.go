@@ -21,6 +21,21 @@ func TestParse(t *testing.T) {
 
 		_ = schema.Parse(&struct{ Name string }{Name: "John"})
 	})
+
+	t.Run("accepts both pointers and values", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r != nil {
+				t.Errorf("Parse() should not have panicked")
+			}
+		}()
+
+		schema := Schema{
+			"Name": Field().Required(),
+		}
+
+		_ = schema.Parse(&struct{ Name string }{Name: "John"})
+		_ = schema.Parse(struct{ Name string }{Name: "John"})
+	})
 }
 
 func TestUnmarshal(t *testing.T) {
