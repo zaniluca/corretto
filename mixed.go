@@ -13,7 +13,7 @@ const (
 // It can be used with any type that has a zero value
 //
 // If the field is not supported, it will panic
-func (v *BaseValidator) Required(msg ...string) *BaseValidator {
+func (v *baseValidator) Required(msg ...string) *baseValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
@@ -30,7 +30,7 @@ func (v *BaseValidator) Required(msg ...string) *BaseValidator {
 // It can be used with int, float or string
 //
 // If the field is not supported, it will panic
-func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
+func (v *baseValidator) Min(min int, msg ...string) *baseValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
@@ -58,7 +58,7 @@ func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
 
 // Schema checks if the field can be parsed by the provided schema
 // Use it to validate nested structs
-func (v *BaseValidator) Schema(s Schema) *BaseValidator {
+func (v *baseValidator) Schema(s Schema) *baseValidator {
 	v.validations = append(v.validations, func() error {
 		return s.Parse(v.field.Interface())
 	})

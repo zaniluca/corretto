@@ -12,11 +12,7 @@ var (
 	logger = log.New(log.Writer(), "corretto: ", log.LstdFlags)
 )
 
-type Validator interface {
-	GetBaseValidator() *BaseValidator
-}
-
-type Schema map[string]Validator
+type Schema map[string]validator
 
 type ValidationFunc func() error
 
@@ -35,12 +31,21 @@ type Context any
 
 type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
+type validator interface {
+	getBaseValidator() *baseValidator
+}
+
 // Represents a validator for a field
-type BaseValidator struct {
+type baseValidator struct {
 	ctx         Context          // The context of the validation, usually the struct that contains the field
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
 	field       reflect.Value    // The value of the field to be validated
 	validations []ValidationFunc // The list of validations to be performed
+}
+
+// Returns the baseValidator of the validator
+func (v *baseValidator) getBaseValidator() *baseValidator {
+	return v
 }
 
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
@@ -72,10 +77,10 @@ func optional[T any](params []T) T {
 // Example:
 //
 //	Field("Name")
-func Field(fieldName ...string) *BaseValidator {
+func Field(fieldName ...string) *baseValidator {
 	name := optional(fieldName)
 
-	return &BaseValidator{fieldName: name}
+	return &baseValidator{fieldName: name}
 }
 
 // Parse validates the struct fields based on the schema
@@ -86,7 +91,7 @@ func Field(fieldName ...string) *BaseValidator {
 //		schema := Schema{
 //			"FirstName": Field("Name").Min(3).Test(customValidation),
 //			"Age":       Field().Min(18),
-//			"Email":     Field().Email(),
+//			"Email":     Field().String().Email(),
 //		}
 //		user := User{
 //			FirstName: "John",
@@ -116,7 +121,7 @@ func (s Schema) Parse(value any) error {
 			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
-		baseValidator := validator.GetBaseValidator()
+		baseValidator := validator.getBaseValidator()
 		baseValidator.field = v.FieldByName(key)
 		baseValidator.ctx = value
 		// If no custom field name is provided, use the struct field name
@@ -165,8 +170,4 @@ func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value
 	}
-}
-
-func (v *BaseValidator) GetBaseValidator() *BaseValidator {
-	return v
 }
