@@ -10,7 +10,7 @@ func TestPredefinedRegex(t *testing.T) {
 
 	t.Run("email", func(t *testing.T) {
 		schema := Schema{
-			"Email": Field().Email(),
+			"Email": Field().String().Email(),
 		}
 
 		tests := []struct {

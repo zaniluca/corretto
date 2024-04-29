@@ -12,7 +12,11 @@ var (
 	logger = log.New(log.Writer(), "corretto: ", log.LstdFlags)
 )
 
-type Schema map[string]*Validator
+type Validator interface {
+	GetBaseValidator() *BaseValidator
+}
+
+type Schema map[string]Validator
 
 type ValidationFunc func() error
 
@@ -32,7 +36,7 @@ type Context any
 type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
 // Represents a validator for a field
-type Validator struct {
+type BaseValidator struct {
 	ctx         Context          // The context of the validation, usually the struct that contains the field
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
 	field       reflect.Value    // The value of the field to be validated
@@ -68,10 +72,10 @@ func optional[T any](params []T) T {
 // Example:
 //
 //	Field("Name")
-func Field(fieldName ...string) *Validator {
+func Field(fieldName ...string) *BaseValidator {
 	name := optional(fieldName)
 
-	return &Validator{fieldName: name}
+	return &BaseValidator{fieldName: name}
 }
 
 // Parse validates the struct fields based on the schema
@@ -112,14 +116,15 @@ func (s Schema) Parse(value any) error {
 			logger.Panicf("field %s not found in struct %s", key, t.Name())
 		}
 
-		validator.field = v.FieldByName(key)
-		validator.ctx = value
+		baseValidator := validator.GetBaseValidator()
+		baseValidator.field = v.FieldByName(key)
+		baseValidator.ctx = value
 		// If no custom field name is provided, use the struct field name
-		if validator.fieldName == "" {
-			validator.fieldName = key
+		if baseValidator.fieldName == "" {
+			baseValidator.fieldName = key
 		}
 
-		for _, checkValidation := range validator.validations {
+		for _, checkValidation := range baseValidator.validations {
 			err := checkValidation()
 			if err != nil {
 				return err
@@ -160,4 +165,8 @@ func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value
 	}
+}
+
+func (v *BaseValidator) GetBaseValidator() *BaseValidator {
+	return v
 }

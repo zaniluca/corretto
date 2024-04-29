@@ -17,13 +17,17 @@ var (
 	emailRegex = regexp.MustCompile(emailRegexString)
 )
 
+type StringValidator struct {
+	*BaseValidator
+}
+
 // Matches checks if the field matches the provided regex pattern
 // It can only be used with string
 //
-// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
+// if the string is empty, it will return true, use [BaseValidator.Required] to check for empty strings
 //
 // If the field is not a string, it will panic
-func (v *Validator) Matches(regex string, msg ...string) *Validator {
+func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator {
 	cmsg := optional(msg)
 	r := regexp.MustCompile(regex)
 
@@ -42,9 +46,13 @@ func (v *Validator) Matches(regex string, msg ...string) *Validator {
 // Email checks if the field is a valid email address format
 // It can only be used with string
 //
-// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
+// if the string is empty, it will return true, use [BaseValidator.Required] to check for empty strings
 //
 // If the field is not a string, it will panic
-func (v *Validator) Email(msg ...string) *Validator {
+func (v *StringValidator) Email(msg ...string) *StringValidator {
 	return v.Matches(emailRegex.String(), msg...)
+}
+
+func (v *BaseValidator) String() *StringValidator {
+	return &StringValidator{v}
 }
