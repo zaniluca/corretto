@@ -5,15 +5,15 @@ import (
 	"strings"
 )
 
-type ValidationErr struct {
+type validationErr struct {
 	Err error
 }
 
-func (v ValidationErr) Error() string {
+func (v validationErr) Error() string {
 	return v.Err.Error()
 }
 
-func newValidationError(msg string, cmsg string, args ...any) ValidationErr {
+func newValidationError(msg string, cmsg string, args ...any) validationErr {
 	if cmsg != "" {
 		msg = cmsg
 	}
@@ -27,5 +27,5 @@ func newValidationError(msg string, cmsg string, args ...any) ValidationErr {
 		args = args[:numPlaceholders]
 	}
 
-	return ValidationErr{Err: fmt.Errorf(msg, args...)}
+	return validationErr{Err: fmt.Errorf(msg, args...)}
 }

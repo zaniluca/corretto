@@ -32,20 +32,34 @@ type Context any
 type CustomValidationFunc func(ctx Context, field reflect.Value) error
 
 type validator interface {
-	getBaseValidator() *baseValidator
+	getBaseValidator() *BaseValidator
+	check() error
+}
+
+// getBaseValidator returns the underlying baseValidator
+func (v *BaseValidator) getBaseValidator() *BaseValidator {
+	return v
+}
+
+// Check if the field is valid by running all validations
+// If any of the validations fail, return the error
+func (v *BaseValidator) check() error {
+	for _, checkValidation := range v.validations {
+		err := checkValidation()
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Represents a validator for a field
-type baseValidator struct {
+type BaseValidator struct {
 	ctx         Context          // The context of the validation, usually the struct that contains the field
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
 	field       reflect.Value    // The value of the field to be validated
 	validations []ValidationFunc // The list of validations to be performed
-}
-
-// Returns the baseValidator of the validator
-func (v *baseValidator) getBaseValidator() *baseValidator {
-	return v
 }
 
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
@@ -77,10 +91,10 @@ func optional[T any](params []T) T {
 // Example:
 //
 //	Field("Name")
-func Field(fieldName ...string) *baseValidator {
+func Field(fieldName ...string) *BaseValidator {
 	name := optional(fieldName)
 
-	return &baseValidator{fieldName: name}
+	return &BaseValidator{fieldName: name}
 }
 
 // Parse validates the struct fields based on the schema
@@ -129,11 +143,9 @@ func (s Schema) Parse(value any) error {
 			baseValidator.fieldName = key
 		}
 
-		for _, checkValidation := range baseValidator.validations {
-			err := checkValidation()
-			if err != nil {
-				return err
-			}
+		// If any of the validations fail, return the error
+		if err := baseValidator.check(); err != nil {
+			return err
 		}
 	}
 

@@ -18,24 +18,21 @@ var (
 	emailRegex = regexp.MustCompile(emailRegexString)
 )
 
-type stringValidator struct {
-	*baseValidator
+type StringValidator struct {
+	*BaseValidator
 }
 
 // Matches checks if the field matches the provided regex pattern
-// It can only be used with string
 //
-// if the string is empty, it will return true, use [baseValidator.Required] to check for empty strings
-//
-// If the field is not a string, it will panic
-func (v *stringValidator) Matches(regex string, msg ...string) *stringValidator {
+// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator {
 	cmsg := optional(msg)
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
-		if v.field.Kind() != reflect.String {
-			logger.Panic("Matches() can only be used with strings")
-		}
+		// if v.field.Kind() != reflect.String {
+		// 	logger.Panic("Matches() can only be used with strings")
+		// }
 		if !r.MatchString(v.field.String()) && v.field.String() != "" {
 			return newValidationError(matchesErrorMsg, cmsg, v.fieldName)
 		}
@@ -45,16 +42,13 @@ func (v *stringValidator) Matches(regex string, msg ...string) *stringValidator 
 }
 
 // Email checks if the field is a valid email address format
-// It can only be used with string
 //
-// if the string is empty, it will return true, use [baseValidator.Required] to check for empty strings
-//
-// If the field is not a string, it will panic
-func (v *stringValidator) Email(msg ...string) *stringValidator {
+// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+func (v *StringValidator) Email(msg ...string) *StringValidator {
 	return v.Matches(emailRegex.String(), msg...)
 }
 
-func (v *baseValidator) String(msg ...string) *stringValidator {
+func (v *BaseValidator) String(msg ...string) *StringValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
@@ -64,5 +58,5 @@ func (v *baseValidator) String(msg ...string) *stringValidator {
 		return nil
 	})
 
-	return &stringValidator{v}
+	return &StringValidator{v}
 }

@@ -13,7 +13,7 @@ const (
 // It can be used with any type that has a zero value
 //
 // If the field is not supported, it will panic
-func (v *baseValidator) Required(msg ...string) *baseValidator {
+func (v *BaseValidator) Required(msg ...string) *BaseValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
@@ -27,10 +27,10 @@ func (v *baseValidator) Required(msg ...string) *baseValidator {
 }
 
 // Min checks if the field is greater than or equal to the provided value
-// It can be used with int, float or string
+// It can be used with int, float, string or slice
 //
 // If the field is not supported, it will panic
-func (v *baseValidator) Min(min int, msg ...string) *baseValidator {
+func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
@@ -47,6 +47,10 @@ func (v *baseValidator) Min(min int, msg ...string) *baseValidator {
 			if len(v.field.String()) < min {
 				return newValidationError(minErrorMsg+" characters long", cmsg, v.fieldName, min)
 			}
+		case reflect.Slice:
+			if v.field.Len() < min {
+				return newValidationError(minErrorMsg+" elements long", cmsg, v.fieldName, min)
+			}
 		default:
 			logger.Panicf("unsopported type %v for Min(), can only be used with int, float or string", v.field.Type().Kind())
 		}
@@ -58,7 +62,7 @@ func (v *baseValidator) Min(min int, msg ...string) *baseValidator {
 
 // Schema checks if the field can be parsed by the provided schema
 // Use it to validate nested structs
-func (v *baseValidator) Schema(s Schema) *baseValidator {
+func (v *BaseValidator) Schema(s Schema) *BaseValidator {
 	v.validations = append(v.validations, func() error {
 		return s.Parse(v.field.Interface())
 	})
