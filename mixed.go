@@ -62,8 +62,16 @@ func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
 
 // Schema checks if the field can be parsed by the provided schema
 // Use it to validate nested structs
+//
+// NOTE: the field associated with the schema must be exported
+//
+//	type Parent struct {
+//		Son  *Son // Field.Schema() works fine
+//		daughter *Daughter // Field.Schema() will panic
+//	}
 func (v *BaseValidator) Schema(s Schema) *BaseValidator {
 	v.validations = append(v.validations, func() error {
+		// TODO: rewrite the panic message to be more informative
 		return s.Parse(v.field.Interface())
 	})
 	return v

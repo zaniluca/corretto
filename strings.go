@@ -25,14 +25,13 @@ type StringValidator struct {
 // Matches checks if the field matches the provided regex pattern
 //
 // if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+//
+// it uses the [regexp] package to match the regex, if the regex is invalid, it will panic
 func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator {
 	cmsg := optional(msg)
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
-		// if v.field.Kind() != reflect.String {
-		// 	logger.Panic("Matches() can only be used with strings")
-		// }
 		if !r.MatchString(v.field.String()) && v.field.String() != "" {
 			return newValidationError(matchesErrorMsg, cmsg, v.fieldName)
 		}

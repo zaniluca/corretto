@@ -9,6 +9,10 @@ const (
 	notAnArrayErrorMsg = "%v is not an array"
 )
 
+const (
+	arrayElementFieldName = "%v's elements"
+)
+
 type ArrayValidator struct {
 	*BaseValidator
 }
@@ -45,9 +49,9 @@ func (v *ArrayValidator) Of(validator *BaseValidator) *ArrayValidator {
 	v.validations = append(v.validations, func() error {
 		for i := 0; i < v.field.Len(); i++ {
 			validator.field = v.field.Index(i)
-			// If no custom field name is provided, use the struct field name + "'s elements"
+			// If no custom field name is provided, use the struct field name formatted accordingly
 			if validator.fieldName == "" {
-				validator.fieldName = fmt.Sprintf("%v's elements", v.fieldName)
+				validator.fieldName = fmt.Sprintf(arrayElementFieldName, v.fieldName)
 			}
 			validator.ctx = v.ctx
 
