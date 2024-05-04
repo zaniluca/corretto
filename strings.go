@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	matchesErrorMsg = "%v is not in the correct format"
+	notAStringErrorMsg = "%v is not a string"
+	matchesErrorMsg    = "%v is not in the correct format"
 )
 
 const (
@@ -17,20 +18,20 @@ var (
 	emailRegex = regexp.MustCompile(emailRegexString)
 )
 
+type StringValidator struct {
+	*BaseValidator
+}
+
 // Matches checks if the field matches the provided regex pattern
-// It can only be used with string
 //
-// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
+// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
 //
-// If the field is not a string, it will panic
-func (v *Validator) Matches(regex string, msg ...string) *Validator {
+// it uses the [regexp] package to match the regex, if the regex is invalid, it will panic
+func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator {
 	cmsg := optional(msg)
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
-		if v.field.Kind() != reflect.String {
-			logger.Panic("Matches() can only be used with strings")
-		}
 		if !r.MatchString(v.field.String()) && v.field.String() != "" {
 			return newValidationError(matchesErrorMsg, cmsg, v.fieldName)
 		}
@@ -40,11 +41,21 @@ func (v *Validator) Matches(regex string, msg ...string) *Validator {
 }
 
 // Email checks if the field is a valid email address format
-// It can only be used with string
 //
-// if the string is empty, it will return true, use [Validator.Required] to check for empty strings
-//
-// If the field is not a string, it will panic
-func (v *Validator) Email(msg ...string) *Validator {
+// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+func (v *StringValidator) Email(msg ...string) *StringValidator {
 	return v.Matches(emailRegex.String(), msg...)
+}
+
+func (v *BaseValidator) String(msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Kind() != reflect.String {
+			return newValidationError(notAStringErrorMsg, cmsg, v.fieldName)
+		}
+		return nil
+	})
+
+	return &StringValidator{v}
 }
