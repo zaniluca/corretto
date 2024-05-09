@@ -32,7 +32,7 @@ func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator 
 	r := regexp.MustCompile(regex)
 
 	v.validations = append(v.validations, func() error {
-		if !r.MatchString(v.field.String()) && v.field.String() != "" {
+		if v.field.String() != "" && !r.MatchString(v.field.String()) {
 			return newValidationError(matchesErrorMsg, cmsg, v.fieldName)
 		}
 		return nil
