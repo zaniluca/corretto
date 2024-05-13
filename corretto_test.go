@@ -163,37 +163,74 @@ func TestValidationOpts(t *testing.T) {
 func TestNestedSchemas(t *testing.T) {
 	logger.SetOutput(io.Discard)
 
-	s2 := Schema{
-		"NestedField1": Field().Min(4),
-	}
+	t.Run("validates nested field", func(t *testing.T) {
+		type Nested struct {
+			NestedField1 int
+		}
 
-	s1 := Schema{
-		"Field1":      Field().Required(),
-		"NestedField": Field().Schema(s2),
-	}
+		type Struct struct {
+			Field1      string
+			NestedField *Nested
+		}
 
-	type Nested struct {
-		NestedField1 int
-	}
+		v := &Struct{
+			Field1: "John",
+			NestedField: &Nested{
+				NestedField1: 3,
+			},
+		}
 
-	type Struct struct {
-		Field1      string
-		NestedField *Nested
-	}
+		s2 := Schema{
+			"NestedField1": Field().Min(4),
+		}
 
-	v := &Struct{
-		Field1: "John",
-		NestedField: &Nested{
-			NestedField1: 3,
-		},
-	}
+		s1 := Schema{
+			"Field1":      Field().Required(),
+			"NestedField": Field().Schema(s2),
+		}
 
-	err := s1.Parse(v)
+		err := s1.Parse(v)
 
-	if err == nil {
-		t.Errorf("Parse() should have returned an error because NestedField1 is not valid")
-	}
-	if err.Error() != "NestedField1 must be at least 4" {
-		t.Errorf("Parse() should have returned the correct error message")
-	}
+		if err == nil {
+			t.Errorf("Parse() should have returned an error because NestedField1 is not valid")
+		}
+		if err.Error() != "NestedField1 must be at least 4" {
+			t.Errorf("Parse() should have returned the correct error message")
+		}
+	})
+
+	t.Run("panics if field is not exported", func(t *testing.T) {
+		defer func() {
+			if r := recover(); r == nil {
+				t.Errorf("Parse() should have panicked")
+			}
+		}()
+
+		type Nested struct {
+			NestedField1 int
+		}
+
+		type Struct struct {
+			Field1      string
+			nestedField *Nested // not exported
+		}
+
+		s2 := Schema{
+			"NestedField1": Field().Min(4),
+		}
+
+		s1 := Schema{
+			"Field1":      Field().Required(),
+			"nestedField": Field().Schema(s2),
+		}
+
+		v := &Struct{
+			Field1: "John",
+			nestedField: &Nested{
+				NestedField1: 4,
+			},
+		}
+
+		_ = s1.Parse(v)
+	})
 }

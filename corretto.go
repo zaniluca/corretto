@@ -60,6 +60,7 @@ type BaseValidator struct {
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
 	field       reflect.Value    // The value of the field to be validated
 	validations []ValidationFunc // The list of validations to be performed
+	key         string           // field name in the struct (and key in the Schema)
 }
 
 // Utility to return the first parameter of a variadic function and log a warning if more than one parameter is passed
@@ -138,6 +139,7 @@ func (s Schema) Parse(value any) error {
 		baseValidator := validator.getBaseValidator()
 		baseValidator.field = v.FieldByName(key)
 		baseValidator.ctx = value
+		baseValidator.key = key
 		// If no custom field name is provided, use the struct field name
 		if baseValidator.fieldName == "" {
 			baseValidator.fieldName = key

@@ -71,7 +71,9 @@ func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
 //	}
 func (v *BaseValidator) Schema(s Schema) *BaseValidator {
 	v.validations = append(v.validations, func() error {
-		// TODO: rewrite the panic message to be more informative
+		if !v.field.CanInterface() {
+			logger.Panicf("field `%v` must be exported to be validated", v.key)
+		}
 		return s.Parse(v.field.Interface())
 	})
 	return v
