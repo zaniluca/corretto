@@ -1,6 +1,6 @@
 # Corretto
 
-Corretto (Italian for "Free from errors") is a simple and essential schema validation package for go structs. It is designed with code readability in mind.
+Corretto (Italian for "Free from errors")[^1] is a simple but powerful schema validation package for go structs. It is designed with code readability in mind.
 
 The library is inspired by popular JavaScript libraries like [Yup](https://github.com/jquense/yup) and [Zod](https://github.com/colinhacks/zod), and it aims to provide a similar experience in Go.
 
@@ -16,10 +16,7 @@ To create a schema, use the `Schema` constructor, and define the shape of the da
 package main
 
 import (
-	c "corretto"
-	"fmt"
-	"log/slog"
-	"reflect"
+	c "github.com/zaniluca/corretto"
 )
 
 type User struct {
@@ -76,7 +73,7 @@ func main() {
 
 ## The Schema
 
-Corretto's `Schema` is nothing more than a map of fields to their respective validation rules. Each Field in the schema, which must be explicitly declare with the `Field()` func can have a number of methods attached to it, which define how the field should be parsed and validated.
+Corretto's `Schema` is nothing more than a map of fields to their respective validation rules. Each Field in the schema, which must be explicitly declared with the `Field()` func can have a number of methods attached to it, which define how the field should be parsed and validated.
 
 ### Validation
 
@@ -151,6 +148,60 @@ userSchema := nameSchema.Concat(c.Schema{
 })
 ```
 
+> Note: if you're concatenating two schemas that have the same field, the field in the second schema will override the field in the first schema.
+
+### Primitive Validators
+
+Not all validations are designed to be used with all types, for example, the `Email` validation should only be applied to strings.
+
+To enforce this corretto offers a set of **Primitive Validators** that can be used to restrict the types of values that can be validated.
+
+```go
+schema := c.Schema{
+	"Email": c.Field().String().Email(), // Will error if the value is not a string (and also if it's not a valid email)
+}
+```
+
+When applying a primitive validator to a field, the field will be restricted to the type of the primitive validator, and only the methods that are valid for that type will be available. For example, if you apply the `Email()` validator to a field, you will only be able to use string methods (and base ones like `Required()`) on that field.
+
+This means that you'll get a compile-time error if you try to use a method that is not valid for the type of the field. _(and also methods suggestions from your IDE)_
+
+Currently we support `String()` and `Array()` as primitive validators.
+
+### Nested Schemas
+
+Schemas can be used to validate nested structs. Let's say you have a `User` struct that contains an `Address` struct.
+
+```go
+type Address struct {
+	Street string
+	City   string
+}
+
+type User struct {
+	FirstName string
+	LastName  string
+	Address   Address
+}
+```
+
+You can define a schema for the `Address` struct and then use that schema in the schema for the `User` struct.
+
+```go
+addressSchema := c.Schema{
+	"Street": c.Field().String().Required(),
+	"City":   c.Field().String().Required(),
+}
+
+userSchema := c.Schema{
+	"FirstName": c.Field().String().Required(),
+	"LastName":  c.Field().String().Required(),
+	"Address":   c.Field().Schema(addressSchema),
+}
+```
+
+> Note: in this case `Address` was an **exported** field, if it was unexported the validator would not be able to access it and will panic.
+
 ## Package
 
 ### `corretto`
@@ -218,3 +269,5 @@ Corretto also provides some predefined regex validations:
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+[^1]: "Corretto" is also used as a term for a type of coffee in Italy, one that is "corrected" with a shot of liquor.

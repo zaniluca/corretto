@@ -180,6 +180,7 @@ func (s Schema) MustUnmarshal(data []byte, v any) {
 }
 
 // Concat adds the fields from another [Schema] to the current schema
+// If the field already exists, it will be overwritten
 func (s Schema) Concat(other Schema) {
 	for key, value := range other {
 		s[key] = value

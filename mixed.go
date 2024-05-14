@@ -52,7 +52,7 @@ func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
 				return newValidationError(minErrorMsg+" elements long", cmsg, v.fieldName, min)
 			}
 		default:
-			logger.Panicf("unsopported type %v for Min(), can only be used with int, float or string", v.field.Type().Kind())
+			logger.Panicf("unsopported type %v for Min(), can only be used with int, float, string or slice", v.field.Type().Kind())
 		}
 
 		return nil
