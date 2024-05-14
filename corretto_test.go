@@ -234,3 +234,56 @@ func TestNestedSchemas(t *testing.T) {
 		_ = s1.Parse(v)
 	})
 }
+
+func TestMin(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	tests := []struct {
+		name        string
+		intValue    int
+		stringValue string
+		floatValue  float64
+		min         int
+		expectError bool
+	}{
+		{
+			name:        "value is less than min",
+			intValue:    5,
+			stringValue: "hello",
+			floatValue:  5.0,
+			min:         10,
+			expectError: true,
+		},
+		{
+			name:        "value is equal to min",
+			intValue:    10,
+			stringValue: "helloworld",
+			floatValue:  10.0,
+			min:         10,
+			expectError: false,
+		},
+		{
+			name:        "value is greater than min",
+			intValue:    15,
+			stringValue: "helloworld",
+			floatValue:  15.0,
+			min:         10,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema := Schema{
+				"Field1": Field().Min(tt.min),
+			}
+
+			err := schema.Parse(&struct{ Field1 int }{Field1: tt.intValue})
+			err = schema.Parse(&struct{ Field1 string }{Field1: tt.stringValue})
+			err = schema.Parse(&struct{ Field1 float64 }{Field1: tt.floatValue})
+			if tt.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
