@@ -16,29 +16,29 @@ To create a schema, use the `Schema` constructor, and define the shape of the da
 package main
 
 import (
-	c "github.com/zaniluca/corretto"
+    c "github.com/zaniluca/corretto"
 )
 
 type User struct {
-	FirstName string
-	Age       int
-	BirthDate string
-	Email     string
+    FirstName string
+    Age       int
+    BirthDate string
+    Email     string
 }
 
 func main() {
     user := &User{
-    	FirstName: "John",
-    	Age:       17,
-    	BirthDate: "2007-01-01",
-    	Email:     "john@doe.com",
+      FirstName: "John",
+      Age:       17,
+      BirthDate: "2007-01-01",
+      Email:     "john@doe.com",
     }
 
     schema := c.Schema{
-    	"FirstName": c.Field("Name").Min(3),
-    	"Age":       c.Field().Min(18),
-    	"BirthDate": c.Field().Required(),
-    	"Email":     c.Field().Email(),
+      "FirstName": c.Field("Name").Min(3),
+      "Age":       c.Field().Min(18),
+      "BirthDate": c.Field().Required(),
+      "Email":     c.Field().Email(),
     }
 
     // ❌ ValidationError{Message: "Age must be at least 18"}
@@ -82,7 +82,7 @@ The core of a validation schema is to check that a given value conforms to a set
 ```go
 err := schema.Parse(user)
 if err != nil {
-	log.Println(err)
+    log.Println(err)
 }
 ```
 
@@ -110,7 +110,7 @@ You can customize the field name in the error message by passing it as an argume
 ```go
 // The error message will be "Name must be at least 3 characters long"
 s := c.Schema{
-	"FirstName": c.Field("Name").Min(3),
+    "FirstName": c.Field("Name").Min(3),
     // ...
 }
 ```
@@ -120,9 +120,9 @@ If you want to customize the entire error message, you can pass a second argumen
 ```go
 // The error message will be "Name not long enough"
 s := c.Schema{
-	"FirstName": c.Field("Name")
-                  .Min(3, "%v not long enough (min %v)"),
-	// ...
+    "FirstName": c.Field("Name")
+                    .Min(3, "%v not long enough (min %v)"),
+  // ...
 }
 ```
 
@@ -140,11 +140,11 @@ Another way to reuse schemas is to use the `Schema` constructor to define a sche
 
 ```go
 nameSchema := c.Schema{
-	"FirstName": nameValidator,
+    "FirstName": nameValidator,
 }
 
 userSchema := nameSchema.Concat(c.Schema{
-	"Age": c.Field().Min(18),
+    "Age": c.Field().Min(18),
 })
 ```
 
@@ -158,7 +158,7 @@ To enforce this corretto offers a set of **Primitive Validators** that can be us
 
 ```go
 schema := c.Schema{
-	"Email": c.Field().String().Email(), // Will error if the value is not a string (and also if it's not a valid email)
+    "Email": c.Field().String().Email(), // Will error if the value is not a string (and also if it's not a valid email)
 }
 ```
 
@@ -174,14 +174,14 @@ Schemas can be used to validate nested structs. Let's say you have a `User` stru
 
 ```go
 type Address struct {
-	Street string
-	City   string
+    Street string
+    City   string
 }
 
 type User struct {
-	FirstName string
-	LastName  string
-	Address   Address
+    FirstName string
+    LastName  string
+    Address   Address
 }
 ```
 
@@ -189,14 +189,14 @@ You can define a schema for the `Address` struct and then use that schema in the
 
 ```go
 addressSchema := c.Schema{
-	"Street": c.Field().String().Required(),
-	"City":   c.Field().String().Required(),
+    "Street": c.Field().String().Required(),
+    "City":   c.Field().String().Required(),
 }
 
 userSchema := c.Schema{
-	"FirstName": c.Field().String().Required(),
-	"LastName":  c.Field().String().Required(),
-	"Address":   c.Field().Schema(addressSchema),
+    "FirstName": c.Field().String().Required(),
+    "LastName":  c.Field().String().Required(),
+    "Address":   c.Field().Schema(addressSchema),
 }
 ```
 
