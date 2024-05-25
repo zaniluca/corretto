@@ -86,3 +86,25 @@ func (v *BaseValidator) Test(f CustomValidationFunc) *BaseValidator {
 	})
 	return v
 }
+
+func (v *BaseValidator) OneOf(allowed []any, msg ...string) *BaseValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !oneOf(v.field.Interface(), allowed) {
+			return newValidationError("%v is not one of %v", cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
+}
+
+func oneOf[T comparable](v T, allowed []T) bool {
+	for _, a := range allowed {
+		if v == a {
+			return true
+		}
+	}
+	return false
+}

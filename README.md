@@ -49,27 +49,14 @@ func main() {
 
 **Table of Contents**
 
-- [Getting Started](#getting-started)
 - [The Schema](#the-schema)
   - [Validation](#validation)
   - [Custom validations](#custom-validations)
     - [Customizing errors](#customizing-errors)
   - [Composition and Reuse](#composition-and-reuse)
-- [API](#api)
-  - [`corretto`](#corretto)
-    - [`Schema`](#schema)
-    - [`Field(fieldName ...string) *Validator`](#fieldfieldname-string-validator)
-    - [`(s Schema) Parse(value any) error`](#s-schema-parsevalue-any-error)
-    - [`(s Schema) MustParse(value any)`](#s-schema-mustparsevalue-any)
-    - [`(s Schema) Concat(other Schema)`](#s-schema-concatother-schema)
-    - [`(s Schema) Unmarshal(data []byte, value any) error`](#s-schema-unmarshaldata-byte-value-any-error)
-  - [Mixed](#mixed)
-    - [`(*Validator) Required(msg ...string) *Validator`](#validator-requiredopts-validationopts-validator)
-    - [`(*Validator) Min(min int, msg ...string) *Validator`](#validator-minmin-int-opts-validationopts-validator)
-    - [`(*Validator) Max(max int, msg ...string) *Validator`](#validator-maxmax-int-opts-validationopts-validator)
-  - [Strings](#strings)
-    - [`(v *Validator) Matches(regex string, msg ...string) *Validator`](#v-validator-matchesregex-string-opts-validationopts-validator)
-    - [`(v *Validator) Email(msg ...string) *Validator`](#v-validator-emailopts-validationopts-validator)
+  - [Primitive Validators](#primitive-validators)
+  - [Nested Schemas](#nested-schemas)
+- [License](#license)
 
 ## The Schema
 

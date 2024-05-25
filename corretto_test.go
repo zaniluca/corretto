@@ -287,3 +287,37 @@ func TestMin(t *testing.T) {
 		})
 	}
 }
+
+func TestOneOf(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	s := Schema{
+		"Field1": Field().OneOf([]any{1, 2, 3}),
+	}
+
+	tests := []struct {
+		name        string
+		value       int
+		expectError bool
+	}{
+		{
+			name:        "value is not in the list",
+			value:       4,
+			expectError: true,
+		},
+		{
+			name:        "value is in the list",
+			value:       2,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := s.Parse(&struct{ Field1 int }{Field1: tt.value})
+			if tt.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
