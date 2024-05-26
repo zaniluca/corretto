@@ -78,7 +78,7 @@ func TestUnmarshal(t *testing.T) {
 
 	schema := Schema{
 		"Name": Field().Required(),
-		"Age":  Field().Required().Min(18),
+		"Age":  Field().Required().Number().Min(18),
 	}
 
 	for _, tt := range tests {
@@ -148,12 +148,13 @@ func TestValidationOpts(t *testing.T) {
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
 				schema := Schema{
-					"Field1": Field().Min(10, tt.customMessage),
+					"Field1": Field().Number().Min(10, tt.customMessage),
 				}
 
 				err := schema.Parse(&struct{ Field1 int }{Field1: 5})
 				if err != nil && err.Error() != tt.expectedError {
 					t.Errorf("Parse() should have returned custom message")
+					t.Errorf("expected: %s, got: %s", tt.expectedError, err.Error())
 				}
 			})
 		}
@@ -181,7 +182,7 @@ func TestNestedSchemas(t *testing.T) {
 		}
 
 		s2 := Schema{
-			"NestedField1": Field().Min(4),
+			"NestedField1": Field().Number().Min(4),
 		}
 
 		s1 := Schema{
@@ -216,7 +217,7 @@ func TestNestedSchemas(t *testing.T) {
 		}
 
 		s2 := Schema{
-			"NestedField1": Field().Min(4),
+			"NestedField1": Field().Number().Min(4),
 		}
 
 		s1 := Schema{
@@ -275,7 +276,7 @@ func TestMin(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			schema := Schema{
-				"Field1": Field().Min(tt.min),
+				"Field1": Field().Number().Min(tt.min),
 			}
 
 			err := schema.Parse(&struct{ Field1 int }{Field1: tt.intValue})

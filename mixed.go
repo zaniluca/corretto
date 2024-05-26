@@ -1,9 +1,5 @@
 package corretto
 
-import (
-	"reflect"
-)
-
 const (
 	requiredErrorMsg = "%v is a required field"
 	minErrorMsg      = "%v must be at least %v"
@@ -21,40 +17,6 @@ func (v *BaseValidator) Required(msg ...string) *BaseValidator {
 		if v.field.IsZero() {
 			return newValidationError(requiredErrorMsg, cmsg, v.fieldName)
 		}
-		return nil
-	})
-	return v
-}
-
-// Min checks if the field is greater than or equal to the provided value
-// It can be used with int, float, string or slice
-//
-// If the field is not supported, it will panic
-func (v *BaseValidator) Min(min int, msg ...string) *BaseValidator {
-	cmsg := optional(msg)
-
-	v.validations = append(v.validations, func() error {
-		switch v.field.Type().Kind() {
-		case reflect.Int:
-			if v.field.Int() < int64(min) {
-				return newValidationError(minErrorMsg, cmsg, v.fieldName, min)
-			}
-		case reflect.Float64:
-			if v.field.Float() < float64(min) {
-				return newValidationError(minErrorMsg, cmsg, v.fieldName, min)
-			}
-		case reflect.String:
-			if len(v.field.String()) < min {
-				return newValidationError(minErrorMsg+" characters long", cmsg, v.fieldName, min)
-			}
-		case reflect.Slice:
-			if v.field.Len() < min {
-				return newValidationError(minErrorMsg+" elements long", cmsg, v.fieldName, min)
-			}
-		default:
-			logger.Panicf("unsopported type %v for Min(), can only be used with int, float, string or slice", v.field.Type().Kind())
-		}
-
 		return nil
 	})
 	return v

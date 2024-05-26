@@ -36,6 +36,10 @@ type validator interface {
 	check() error
 }
 
+type Validator[T validator] interface {
+	Min(min int, msg ...string) T
+}
+
 // getBaseValidator returns the underlying baseValidator
 func (v *BaseValidator) getBaseValidator() *BaseValidator {
 	return v

@@ -7,6 +7,7 @@ import (
 
 const (
 	notAStringErrorMsg = "%v is not a string"
+	minLengthErrorMsg  = "%v must be at least %v characters long"
 	matchesErrorMsg    = "%v is not in the correct format"
 )
 
@@ -20,6 +21,19 @@ var (
 
 type StringValidator struct {
 	*BaseValidator
+}
+
+// Min checks if the field has a length greater than or equal to the provided value
+func (v *StringValidator) Min(min int, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if len(v.field.String()) < min {
+			return newValidationError(minLengthErrorMsg, cmsg, v.fieldName, min)
+		}
+		return nil
+	})
+	return v
 }
 
 // Matches checks if the field matches the provided regex pattern

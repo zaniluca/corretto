@@ -45,20 +45,34 @@ func (v *BaseValidator) Array(msg ...string) *ArrayValidator {
 //	 }
 //
 //	"Users": corretto.Field().Array().Of(corretto.Field("User").Schema(s)),
-func (v *ArrayValidator) Of(validator *BaseValidator) *ArrayValidator {
+func (v *ArrayValidator) Of(validator validator) *ArrayValidator {
 	v.validations = append(v.validations, func() error {
 		for i := 0; i < v.field.Len(); i++ {
-			validator.field = v.field.Index(i)
+			bv := validator.getBaseValidator()
+			bv.field = v.field.Index(i)
 			// If no custom field name is provided, use the struct field name formatted accordingly
-			if validator.fieldName == "" {
-				validator.fieldName = fmt.Sprintf(arrayElementFieldName, v.fieldName)
+			if bv.fieldName == "" {
+				bv.fieldName = fmt.Sprintf(arrayElementFieldName, v.fieldName)
 			}
-			validator.ctx = v.ctx
+			bv.ctx = v.ctx
 
 			// If any of the elements fail the validation, return the error
-			if err := validator.check(); err != nil {
+			if err := bv.check(); err != nil {
 				return err
 			}
+		}
+		return nil
+	})
+
+	return v
+}
+
+func (v *ArrayValidator) Min(min int, msg ...string) *ArrayValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Len() < min {
+			return newValidationError(minErrorMsg+" elements long", cmsg, v.fieldName, min)
 		}
 		return nil
 	})
