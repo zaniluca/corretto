@@ -60,7 +60,7 @@ func (v *StringValidator) Test(f CustomValidationFunc[string]) *StringValidator 
 
 // Matches checks if the field matches the provided regex pattern
 //
-// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
 //
 // it uses the [regexp] package to match the regex, if the regex is invalid, it will panic
 func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator {
@@ -78,7 +78,7 @@ func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator 
 
 // Email checks if the field is a valid email address format
 //
-// if the string is empty, it will not return error, use [BaseValidator.Required] to check for empty strings
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
 func (v *StringValidator) Email(msg ...string) *StringValidator {
 	return v.Matches(emailRegex.String(), msg...)
 }
@@ -94,4 +94,20 @@ func (v *BaseValidator) String(msg ...string) *StringValidator {
 	})
 
 	return &StringValidator{v}
+}
+
+// OneOf checks if the field value contains one of the provided values
+//
+// NOTE: it is case sensitive
+func (v *StringValidator) OneOf(allowed []string, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !oneOf(v.field.String(), allowed) {
+			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
 }

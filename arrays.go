@@ -54,7 +54,7 @@ func (v *ArrayValidator) Test(f CustomValidationFunc[reflect.Value]) *ArrayValid
 
 // Array checks if the field is an array (slice)
 //
-// It doesn't check if the array is empty, use [BaseValidator.Required] to check for empty arrays
+// It doesn't check if the array is empty, use [ArrayValidator.NonEmpty] to check for empty arrays
 func (v *BaseValidator) Array(msg ...string) *ArrayValidator {
 	cmsg := optional(msg)
 
@@ -70,13 +70,13 @@ func (v *BaseValidator) Array(msg ...string) *ArrayValidator {
 
 // Of checks if all elements of the array are valid according to the provided validator
 //
-//	"Hobbies": corretto.Field().Array().Of(corretto.Field("Hobby").Min(3)),
+//	"Hobbies": corretto.Field().Array().Of(corretto.Field("Hobby").String().MinLength(3)),
 //
 // You can also use [BaseValidator.Schema] to validate the array elements with a schema
 //
 //	 s := corretto.Schema{
-//		"Name": corretto.Field("Name").Required(),
-//		"Age": corretto.Field("Age").Min(18),
+//		"Name": corretto.Field("Name").String().NonEmpty(),
+//		"Age": corretto.Field("Age").Number().Min(18),
 //	 }
 //
 //	"Users": corretto.Field().Array().Of(corretto.Field("User").Schema(s)),

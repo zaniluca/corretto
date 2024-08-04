@@ -1,7 +1,6 @@
 package corretto
 
 import (
-	"encoding/json"
 	"log"
 	"path/filepath"
 	"reflect"
@@ -12,7 +11,9 @@ var (
 	logger = log.New(log.Writer(), "corretto: ", log.LstdFlags)
 )
 
-type Schema map[string]validator
+const (
+	oneOfErrorMsg = "%v must be one of %v"
+)
 
 type ValidationFunc func() error
 
@@ -85,6 +86,15 @@ func optional[T any](params []T) T {
 	return *new(T)
 }
 
+func oneOf[T comparable](v T, allowed []T) bool {
+	for _, a := range allowed {
+		if v == a {
+			return true
+		}
+	}
+	return false
+}
+
 // Field creates a new validator for a field.
 // Pass the field name to be displayed in the error message or leave it empty to use the struct field name.
 // Although you can pass fieldName as a variadic parameter this is done only to make it optional.
@@ -97,93 +107,4 @@ func Field(fieldName ...string) *BaseValidator {
 	name := optional(fieldName)
 
 	return &BaseValidator{fieldName: name}
-}
-
-// Parse validates the struct fields based on the schema
-// It returns an error if any of the validations fail or nil if all validations pass
-//
-// Example:
-//
-//		schema := Schema{
-//			"FirstName": Field("Name").Min(3).Test(customValidation),
-//			"Age":       Field().Min(18),
-//			"Email":     Field().String().Email(),
-//		}
-//		user := User{
-//			FirstName: "John",
-//			Age:       17,
-//			Email:     "john@doe.com",
-//		}
-//
-//		err := schema.Parse(user) // ValidationError{Message: "Age must be at least 18"}
-//	 	// you can pass a reference too
-//		err := schema.Parse(&user) // ValidationError{Message: "Age must be at least 18"}
-func (s Schema) Parse(value any) error {
-	for key, validator := range s {
-		var t reflect.Type
-		var v reflect.Value
-
-		// Check if the value is a pointer to a struct or a struct value
-		if reflect.TypeOf(value).Kind() == reflect.Ptr {
-			t = reflect.TypeOf(value).Elem()
-			v = reflect.ValueOf(value).Elem()
-		} else {
-			t = reflect.TypeOf(value)
-			v = reflect.ValueOf(value)
-		}
-
-		// Check if the field exists in the struct
-		if _, ok := t.FieldByName(key); !ok {
-			logger.Panicf("field %s not found in struct %s", key, t.Name())
-		}
-
-		baseValidator := validator.getBaseValidator()
-		baseValidator.field = v.FieldByName(key)
-		baseValidator.ctx = value
-		baseValidator.key = key
-		// If no custom field name is provided, use the struct field name
-		if baseValidator.fieldName == "" {
-			baseValidator.fieldName = key
-		}
-
-		// If any of the validations fail, return the error
-		if err := baseValidator.check(); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-// Unmarshal parses the JSON data into the struct and validates the fields based on the schema
-func (s Schema) Unmarshal(data []byte, v any) error {
-	if err := json.Unmarshal(data, &v); err != nil {
-		return err
-	}
-
-	return s.Parse(v)
-}
-
-// MustParse behaves the same as [Schema.Parse] but panics if any of the validations fail
-func (s Schema) MustParse(value any) {
-	err := s.Parse(value)
-	if err != nil {
-		panic(err)
-	}
-}
-
-// MustUnmarshal behaves the same as [Schema.Unmarshal] but panics if any of the validations fail or if the JSON data cannot be parsed
-func (s Schema) MustUnmarshal(data []byte, v any) {
-	err := s.Unmarshal(data, v)
-	if err != nil {
-		panic(err)
-	}
-}
-
-// Concat adds the fields from another [Schema] to the current schema
-// If the field already exists, it will be overwritten
-func (s Schema) Concat(other Schema) {
-	for key, value := range other {
-		s[key] = value
-	}
 }

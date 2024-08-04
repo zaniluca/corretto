@@ -89,3 +89,17 @@ func (v *NumberValidator) Test(f CustomValidationFunc[int64]) *NumberValidator {
 	})
 	return v
 }
+
+// OneOf checks if the field value contains one of the provided values
+func (v *NumberValidator) OneOf(allowed []int, msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !oneOf(int(v.field.Int()), allowed) {
+			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
+}
