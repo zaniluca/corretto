@@ -10,9 +10,11 @@ type Number interface {
 }
 
 const (
-	notANumberMessage         = "%v is not a number"
-	notAPositiveNumberMessage = "%v must be a positive number"
-	notANegativeNumberMessage = "%v must be a negative number"
+	notANumberMsg         = "%v is not a number"
+	notAPositiveNumberMsg = "%v must be a positive number"
+	notANegativeNumberMsg = "%v must be a negative number"
+	zeroNumberErrorMsg    = "%v is required"
+	minNumberErrorMsg     = "%v must be at least %v"
 )
 
 type NumberValidator struct {
@@ -25,7 +27,7 @@ func (v *BaseValidator) Number(msg ...string) *NumberValidator {
 
 	v.validations = append(v.validations, func() error {
 		if !slices.Contains(numbers, v.field.Kind()) {
-			return newValidationError(notANumberMessage, cmsg, v.fieldName)
+			return newValidationError(notANumberMsg, cmsg, v.fieldName)
 		}
 		return nil
 	})
@@ -33,11 +35,71 @@ func (v *BaseValidator) Number(msg ...string) *NumberValidator {
 	return &NumberValidator{v}
 }
 
+// NonZero checks if the field is not "0"
+func (v *NumberValidator) NonZero(msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.IsZero() {
+			return newValidationError(zeroNumberErrorMsg, cmsg, v.fieldName)
+		}
+		return nil
+	})
+	return v
+}
+
+// Positive checks if the field is a positive number (greater than or equal to zero)
 func (v *NumberValidator) Positive(msg ...string) *NumberValidator {
 	cmsg := optional(msg)
 	if cmsg == "" {
-		cmsg = notAPositiveNumberMessage
+		cmsg = notAPositiveNumberMsg
 	}
 
-	return v // TODO
+	return v.Min(0, cmsg)
+}
+
+// Min checks if the field is greater than or equal to the provided value
+func (v *NumberValidator) Min(min int, msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		switch v.field.Kind() {
+		case reflect.Int:
+			if v.field.Int() < int64(min) {
+				return newValidationError(minNumberErrorMsg, cmsg, v.fieldName, min)
+			}
+		case reflect.Float64:
+			if v.field.Float() < float64(min) {
+				return newValidationError(minNumberErrorMsg, cmsg, v.fieldName, min)
+			}
+		default:
+			logger.Panicf("unsupported type %v for Min(), can only be used with int or float", v.field.Kind())
+		}
+
+		return nil
+	})
+
+	return v
+}
+
+// Test is a custom validation function that can be used to add custom validation
+func (v *NumberValidator) Test(f CustomValidationFunc[int64]) *NumberValidator {
+	v.validations = append(v.validations, func() error {
+		return f(v.ctx, v.field.Int())
+	})
+	return v
+}
+
+// OneOf checks if the field value contains one of the provided values
+func (v *NumberValidator) OneOf(allowed []int, msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !oneOf(int(v.field.Int()), allowed) {
+			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
 }

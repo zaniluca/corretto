@@ -45,12 +45,12 @@ func TestArrayOf(t *testing.T) {
 	}
 
 	innerSchema := Schema{
-		"innerField": Field().Min(3),
+		"innerField": Field().Number().Min(3),
 	}
 
 	schema := Schema{
 		"WithSchema":    Field().Array().Of(Field().Schema(innerSchema)),
-		"withValidator": Field().Array().Of(Field().Min(3)),
+		"withValidator": Field().Array().Of(Field().Number().Min(3)),
 	}
 
 	testsWithValidator := []struct {
