@@ -1,26 +1,8 @@
 package corretto
 
 const (
-	requiredErrorMsg = "%v is a required field"
-	minErrorMsg      = "%v must be at least %v"
+	oneOfErrorMsg = "%v must be one of %v"
 )
-
-// Required checks if the field is not at its zero value
-// It can be used with any type that has a zero value
-//
-// If the field is not supported, it will panic
-func (v *BaseValidator) Required(msg ...string) *BaseValidator {
-	cmsg := optional(msg)
-
-	v.validations = append(v.validations, func() error {
-		// Check if the value is at its zero value
-		if v.field.IsZero() {
-			return newValidationError(requiredErrorMsg, cmsg, v.fieldName)
-		}
-		return nil
-	})
-	return v
-}
 
 // Schema checks if the field can be parsed by the provided schema
 // Use it to validate nested structs
@@ -41,20 +23,12 @@ func (v *BaseValidator) Schema(s Schema) *BaseValidator {
 	return v
 }
 
-// Test is a custom validation function that can be used to add custom validation
-func (v *BaseValidator) Test(f CustomValidationFunc) *BaseValidator {
-	v.validations = append(v.validations, func() error {
-		return f(v.ctx, v.field)
-	})
-	return v
-}
-
 func (v *BaseValidator) OneOf(allowed []any, msg ...string) *BaseValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
 		if !oneOf(v.field.Interface(), allowed) {
-			return newValidationError("%v is not one of %v", cmsg, v.fieldName, allowed)
+			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
 		}
 		return nil
 	})

@@ -29,15 +29,11 @@ type ValidationFunc func() error
 //	}
 type Context any
 
-type CustomValidationFunc func(ctx Context, field reflect.Value) error
+type CustomValidationFunc[V any] func(ctx Context, value V) error
 
 type validator interface {
 	getBaseValidator() *BaseValidator
 	check() error
-}
-
-type Validator[T validator] interface {
-	Min(min int, msg ...string) T
 }
 
 // getBaseValidator returns the underlying baseValidator
@@ -59,6 +55,7 @@ func (v *BaseValidator) check() error {
 }
 
 // Represents a validator for a field
+// TODO: Maybe call it AnyValidator? or FieldValidator?
 type BaseValidator struct {
 	ctx         Context          // The context of the validation, usually the struct that contains the field
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name

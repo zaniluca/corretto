@@ -16,7 +16,7 @@ func TestParse(t *testing.T) {
 		}()
 
 		schema := Schema{
-			"UnexistingField": Field().Required(),
+			"UnexistingField": Field().String().NonEmpty(),
 		}
 
 		_ = schema.Parse(&struct{ Name string }{Name: "John"})
@@ -30,7 +30,7 @@ func TestParse(t *testing.T) {
 		}()
 
 		schema := Schema{
-			"Name": Field().Required(),
+			"Name": Field().String().NonEmpty(),
 		}
 
 		_ = schema.Parse(&struct{ Name string }{Name: "John"})
@@ -77,8 +77,8 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	schema := Schema{
-		"Name": Field().Required(),
-		"Age":  Field().Required().Number().Min(18),
+		"Name": Field().String().NonEmpty(),
+		"Age":  Field().Number().Min(18),
 	}
 
 	for _, tt := range tests {
@@ -96,10 +96,10 @@ func TestConcat(t *testing.T) {
 
 	s := &struct{ Field1, Field2 string }{Field1: "John"}
 	schema := Schema{
-		"Field1": Field().Required(),
+		"Field1": Field().String().NonEmpty(),
 	}
 	otherSchema := Schema{
-		"Field2": Field().Required(),
+		"Field2": Field().String().NonEmpty(),
 	}
 	err := schema.Parse(s)
 	if err != nil {
@@ -186,7 +186,7 @@ func TestNestedSchemas(t *testing.T) {
 		}
 
 		s1 := Schema{
-			"Field1":      Field().Required(),
+			"Field1":      Field().String().NonEmpty(),
 			"NestedField": Field().Schema(s2),
 		}
 
@@ -221,7 +221,7 @@ func TestNestedSchemas(t *testing.T) {
 		}
 
 		s1 := Schema{
-			"Field1":      Field().Required(),
+			"Field1":      Field().String().NonEmpty(),
 			"nestedField": Field().Schema(s2),
 		}
 

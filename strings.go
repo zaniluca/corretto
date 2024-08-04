@@ -6,9 +6,10 @@ import (
 )
 
 const (
-	notAStringErrorMsg = "%v is not a string"
-	minLengthErrorMsg  = "%v must be at least %v characters long"
-	matchesErrorMsg    = "%v is not in the correct format"
+	notAStringErrorMsg      = "%v is not a string"
+	stringMinLengthErrorMsg = "%v must be at least %v characters long"
+	matchesErrorMsg         = "%v is not in the correct format"
+	nonEmptyErrorMsg        = "%v cannot be empty"
 )
 
 const (
@@ -23,15 +24,36 @@ type StringValidator struct {
 	*BaseValidator
 }
 
-// Min checks if the field has a length greater than or equal to the provided value
-func (v *StringValidator) Min(min int, msg ...string) *StringValidator {
+// NonEmpty checks if the field does not contain an empty string
+func (v *StringValidator) NonEmpty(msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.IsZero() {
+			return newValidationError(nonEmptyErrorMsg, cmsg, v.fieldName)
+		}
+		return nil
+	})
+	return v
+}
+
+// MinLength checks if the field has a length greater than or equal to the provided value
+func (v *StringValidator) MinLength(min int, msg ...string) *StringValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
 		if len(v.field.String()) < min {
-			return newValidationError(minLengthErrorMsg, cmsg, v.fieldName, min)
+			return newValidationError(stringMinLengthErrorMsg, cmsg, v.fieldName, min)
 		}
 		return nil
+	})
+	return v
+}
+
+// Test is a custom validation function that can be used to add custom validation
+func (v *StringValidator) Test(f CustomValidationFunc[string]) *StringValidator {
+	v.validations = append(v.validations, func() error {
+		return f(v.ctx, v.field.String())
 	})
 	return v
 }

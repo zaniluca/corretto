@@ -35,10 +35,10 @@ func main() {
     }
 
     schema := c.Schema{
-      "FirstName": c.Field("Name").Min(3),
-      "Age":       c.Field().Min(18),
-      "BirthDate": c.Field().Required(),
-      "Email":     c.Field().Email(),
+      "FirstName": c.Field("Name").String().MinLength(3),
+      "Age":       c.Field().Number().Min(18),
+      "BirthDate": c.Field().String().NonEmpty(),
+      "Email":     c.Field().String().Email(),
     }
 
     // ❌ ValidationError{Message: "Age must be at least 18"}
@@ -97,7 +97,7 @@ You can customize the field name in the error message by passing it as an argume
 ```go
 // The error message will be "Name must be at least 3 characters long"
 s := c.Schema{
-    "FirstName": c.Field("Name").Min(3),
+    "FirstName": c.Field("Name").String().MinLength(3),
     // ...
 }
 ```
@@ -108,7 +108,8 @@ If you want to customize the entire error message, you can pass a second argumen
 // The error message will be "Name not long enough"
 s := c.Schema{
     "FirstName": c.Field("Name")
-                    .Min(3, "%v not long enough (min %v)"),
+    							.String()
+                  .MinLength(3, "%v not long enough (min %v)"),
   // ...
 }
 ```
@@ -120,7 +121,7 @@ s := c.Schema{
 Schemas can be composed and reused in a number of ways. The most common is to use the `Field()` func to define a field and its validation rules, and then reuse that field in multiple schemas.
 
 ```go
-nameValidator := c.Field("Name").Min(3)
+nameValidator := c.Field("Name").String().MinLength(3)
 ```
 
 Another way to reuse schemas is to use the `Schema` constructor to define a schema and then use `Concat()` to combine it with other schemas.
@@ -131,7 +132,7 @@ nameSchema := c.Schema{
 }
 
 userSchema := nameSchema.Concat(c.Schema{
-    "Age": c.Field().Min(18),
+    "Age": c.Field().Number().Min(18),
 })
 ```
 
@@ -176,13 +177,13 @@ You can define a schema for the `Address` struct and then use that schema in the
 
 ```go
 addressSchema := c.Schema{
-    "Street": c.Field().String().Required(),
-    "City":   c.Field().String().Required(),
+    "Street": c.Field().String().NonEmpty(),
+    "City":   c.Field().String().NonEmpty(),
 }
 
 userSchema := c.Schema{
-    "FirstName": c.Field().String().Required(),
-    "LastName":  c.Field().String().Required(),
+    "FirstName": c.Field().String().NonEmpty(),
+    "LastName":  c.Field().String().NonEmpty(),
     "Address":   c.Field().Schema(addressSchema),
 }
 ```

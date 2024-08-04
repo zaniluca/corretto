@@ -6,7 +6,9 @@ import (
 )
 
 const (
-	notAnArrayErrorMsg = "%v is not an array"
+	notAnArrayErrorMsg     = "%v is not an array"
+	arrayMinLengthErrorMsg = "%v must be at least %v elements long"
+	emptyArrayErrorMsg     = "%v cannot be empty"
 )
 
 const (
@@ -15,6 +17,39 @@ const (
 
 type ArrayValidator struct {
 	*BaseValidator
+}
+
+// NonEmpty checks if the field does not contain an empty array
+func (v *ArrayValidator) NonEmpty(msg ...string) *ArrayValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Len() == 0 {
+			return newValidationError(emptyArrayErrorMsg, cmsg, v.fieldName)
+		}
+		return nil
+	})
+	return v
+}
+
+func (v *ArrayValidator) MinLength(min int, msg ...string) *ArrayValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Len() < min {
+			return newValidationError(arrayMinLengthErrorMsg, cmsg, v.fieldName, min)
+		}
+		return nil
+	})
+
+	return v
+}
+
+func (v *ArrayValidator) Test(f CustomValidationFunc[reflect.Value]) *ArrayValidator {
+	v.validations = append(v.validations, func() error {
+		return f(v.ctx, v.field.Slice(0, v.field.Cap()))
+	})
+	return v
 }
 
 // Array checks if the field is an array (slice)
@@ -60,19 +95,6 @@ func (v *ArrayValidator) Of(validator validator) *ArrayValidator {
 			if err := bv.check(); err != nil {
 				return err
 			}
-		}
-		return nil
-	})
-
-	return v
-}
-
-func (v *ArrayValidator) Min(min int, msg ...string) *ArrayValidator {
-	cmsg := optional(msg)
-
-	v.validations = append(v.validations, func() error {
-		if v.field.Len() < min {
-			return newValidationError(minErrorMsg+" elements long", cmsg, v.fieldName, min)
 		}
 		return nil
 	})
