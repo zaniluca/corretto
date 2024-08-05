@@ -64,11 +64,11 @@ func (v *NumberValidator) Min(min int, msg ...string) *NumberValidator {
 
 	v.validations = append(v.validations, func() error {
 		switch v.field.Kind() {
-		case reflect.Int:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			if v.field.Int() < int64(min) {
 				return newValidationError(minNumberErrorMsg, cmsg, v.fieldName, min)
 			}
-		case reflect.Float64:
+		case reflect.Float64, reflect.Float32:
 			if v.field.Float() < float64(min) {
 				return newValidationError(minNumberErrorMsg, cmsg, v.fieldName, min)
 			}
@@ -82,10 +82,10 @@ func (v *NumberValidator) Min(min int, msg ...string) *NumberValidator {
 	return v
 }
 
-// Test is a custom validation function that can be used to add custom validation
-func (v *NumberValidator) Test(f CustomValidationFunc[int64]) *NumberValidator {
+// Test allows you to run a custom validation function
+func (v *NumberValidator) Test(f CustomValidationFunc[int]) *NumberValidator {
 	v.validations = append(v.validations, func() error {
-		return f(v.ctx, v.field.Int())
+		return f(v.ctx, int(v.field.Int()))
 	})
 	return v
 }

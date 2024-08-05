@@ -50,7 +50,7 @@ func (v *StringValidator) MinLength(min int, msg ...string) *StringValidator {
 	return v
 }
 
-// Test is a custom validation function that can be used to add custom validation
+// Test allows you to run a custom validation function
 func (v *StringValidator) Test(f CustomValidationFunc[string]) *StringValidator {
 	v.validations = append(v.validations, func() error {
 		return f(v.ctx, v.field.String())

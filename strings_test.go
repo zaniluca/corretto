@@ -33,6 +33,32 @@ func TestString(t *testing.T) {
 	}
 }
 
+func TestStringNonEmpty(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	schema := Schema{
+		"stringField": Field().String().NonEmpty(),
+	}
+
+	tests := []struct {
+		name        string
+		stringField string
+		expectError bool
+	}{
+		{"empty string", "", true},
+		{"non-empty string", "hello world", false},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ stringField string }{stringField: tc.stringField})
+			if tc.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
+
 func TestStringMinLength(t *testing.T) {
 	logger.SetOutput(io.Discard)
 
@@ -85,6 +111,33 @@ func TestStringCustomValidation(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			err := schema.Parse(&struct{ stringField any }{stringField: tc.stringField})
+			if tc.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
+
+func TestStringOneOf(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	schema := Schema{
+		"stringField": Field().String().OneOf([]string{"foo", "bar"}),
+	}
+
+	tests := []struct {
+		name        string
+		value       string
+		expectError bool
+	}{
+		{"empty string", "", true},
+		{"valid string", "foo", false},
+		{"invalid string", "baz", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ stringField string }{stringField: tc.value})
 			if tc.expectError && err == nil {
 				t.Errorf("Parse() should have returned an error")
 			}

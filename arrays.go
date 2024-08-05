@@ -45,6 +45,7 @@ func (v *ArrayValidator) MinLength(min int, msg ...string) *ArrayValidator {
 	return v
 }
 
+// Test allows you to run a custom validation function
 func (v *ArrayValidator) Test(f CustomValidationFunc[reflect.Value]) *ArrayValidator {
 	v.validations = append(v.validations, func() error {
 		return f(v.ctx, v.field.Slice(0, v.field.Cap()))
