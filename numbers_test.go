@@ -190,3 +190,154 @@ func TestNumberOneOf(t *testing.T) {
 		})
 	}
 }
+
+// Test against the number validator alias methods (methods that rely on other methods like Positive() or Negative())
+func TestNumberAliases(t *testing.T) {
+	t.Run("positive", func(t *testing.T) {
+		schema := Schema{
+			"Field1": Field().Number().Positive(),
+		}
+
+		tests := []struct {
+			name        string
+			value       any
+			expectError bool
+		}{
+			{
+				name:        "zero",
+				value:       0,
+				expectError: true,
+			},
+			{
+				name:        "positive",
+				value:       42,
+				expectError: false,
+			},
+			{
+				name:        "negative",
+				value:       -42,
+				expectError: true,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+				if tt.expectError && err == nil {
+					t.Errorf("Parse() should have returned an error")
+				}
+			})
+		}
+	})
+
+	t.Run("negative", func(t *testing.T) {
+		schema := Schema{
+			"Field1": Field().Number().Negative(),
+		}
+
+		tests := []struct {
+			name        string
+			value       any
+			expectError bool
+		}{
+			{
+				name:        "zero",
+				value:       0,
+				expectError: true,
+			},
+			{
+				name:        "positive",
+				value:       42,
+				expectError: true,
+			},
+			{
+				name:        "negative",
+				value:       -42,
+				expectError: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+				if tt.expectError && err == nil {
+					t.Errorf("Parse() should have returned an error")
+				}
+			})
+		}
+	})
+
+	t.Run("non-positive", func(t *testing.T) {
+		schema := Schema{
+			"Field1": Field().Number().NonPositive(),
+		}
+
+		tests := []struct {
+			name        string
+			value       any
+			expectError bool
+		}{
+			{
+				name:        "zero",
+				value:       0,
+				expectError: false,
+			},
+			{
+				name:        "positive",
+				value:       42,
+				expectError: true,
+			},
+			{
+				name:        "negative",
+				value:       -42,
+				expectError: false,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+				if tt.expectError && err == nil {
+					t.Errorf("Parse() should have returned an error")
+				}
+			})
+		}
+	})
+
+	t.Run("non-negative", func(t *testing.T) {
+		schema := Schema{
+			"Field1": Field().Number().NonNegative(),
+		}
+
+		tests := []struct {
+			name        string
+			value       any
+			expectError bool
+		}{
+			{
+				name:        "zero",
+				value:       0,
+				expectError: false,
+			},
+			{
+				name:        "positive",
+				value:       42,
+				expectError: false,
+			},
+			{
+				name:        "negative",
+				value:       -42,
+				expectError: true,
+			},
+		}
+
+		for _, tt := range tests {
+			t.Run(tt.name, func(t *testing.T) {
+				err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+				if tt.expectError && err == nil {
+					t.Errorf("Parse() should have returned an error")
+				}
+			})
+		}
+	})
+}
