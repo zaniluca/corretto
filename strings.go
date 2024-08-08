@@ -1,6 +1,7 @@
 package corretto
 
 import (
+	"net/url"
 	"reflect"
 	"regexp"
 	"strings"
@@ -10,30 +11,52 @@ const (
 	notAStringErrorMsg      = "%v is not a string"
 	mustIncludeErrorMsg     = "%v must include %v"
 	stringMinLengthErrorMsg = "%v must be at least %v characters long"
+	stringMaxLengthErrorMsg = "%v must be at most %v characters long"
+	stringLengthErrorMsg    = "%v must be %v characters long"
 	matchesErrorMsg         = "%v is not in the correct format"
 	nonEmptyErrorMsg        = "%v cannot be empty"
 	mustStartWithErrorMsg   = "%v must start with %v"
 	mustEndWithErrorMsg     = "%v must end with %v"
+	notAValidURLErrorMsg    = "%v is not a valid URL"
 )
 
 const (
-	emailRegexString = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	emailRegexString    = `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
+	uuidRegexString     = `^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$`
+	cuidRegexString     = `^c[^\s-]{8,}$`
+	hexColorRegexString = `#[a-f\d]{3}(?:[a-f\d]?|(?:[a-f\d]{3}(?:[a-f\d]{2})?)?)\b`
 )
 
 var (
-	emailRegex = regexp.MustCompile(emailRegexString)
+	emailRegex    = regexp.MustCompile(emailRegexString)
+	uuidRegex     = regexp.MustCompile(uuidRegexString)
+	cuidRegex     = regexp.MustCompile(cuidRegexString)
+	hexColorRegex = regexp.MustCompile(hexColorRegexString)
 )
 
 type StringValidator struct {
 	*BaseValidator
 }
 
-// NonEmpty checks if the field does not contain an empty string
+func (v *BaseValidator) String(msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Kind() != reflect.String {
+			return newValidationError(notAStringErrorMsg, cmsg, v.fieldName)
+		}
+		return nil
+	})
+
+	return &StringValidator{v}
+}
+
+// NonEmpty checks if the field does not contain an empty string, it trims the string before checking
 func (v *StringValidator) NonEmpty(msg ...string) *StringValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
-		if v.field.IsZero() {
+		if strings.TrimSpace(v.field.String()) == "" {
 			return newValidationError(nonEmptyErrorMsg, cmsg, v.fieldName)
 		}
 		return nil
@@ -51,6 +74,35 @@ func (v *StringValidator) MinLength(min int, msg ...string) *StringValidator {
 		}
 		return nil
 	})
+	return v
+}
+
+// MaxLength checks if the field has a length less than or equal to the provided value
+func (v *StringValidator) MaxLength(max int, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if len(v.field.String()) > max {
+			return newValidationError(stringMaxLengthErrorMsg, cmsg, v.fieldName, max)
+		}
+		return nil
+	})
+	return v
+}
+
+// Length checks if the field has a length equal to the provided value
+//
+// if you want to check for a range of values, use [StringValidator.MinLength] and [StringValidator.MaxLength]
+func (v *StringValidator) Length(l int, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if len(v.field.String()) != l {
+			return newValidationError(stringLengthErrorMsg, cmsg, v.fieldName, l)
+		}
+		return nil
+	})
+
 	return v
 }
 
@@ -78,26 +130,6 @@ func (v *StringValidator) Matches(regex string, msg ...string) *StringValidator 
 		return nil
 	})
 	return v
-}
-
-// Email checks if the field is a valid email address format
-//
-// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
-func (v *StringValidator) Email(msg ...string) *StringValidator {
-	return v.Matches(emailRegex.String(), msg...)
-}
-
-func (v *BaseValidator) String(msg ...string) *StringValidator {
-	cmsg := optional(msg)
-
-	v.validations = append(v.validations, func() error {
-		if v.field.Kind() != reflect.String {
-			return newValidationError(notAStringErrorMsg, cmsg, v.fieldName)
-		}
-		return nil
-	})
-
-	return &StringValidator{v}
 }
 
 // OneOf checks if the field value contains one of the provided values
@@ -164,4 +196,53 @@ func (v *StringValidator) EndsWith(suffix string, msg ...string) *StringValidato
 	})
 
 	return v
+}
+
+// Url checks if the field is a valid URL format
+func (v *StringValidator) Url(msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		_, err := url.ParseRequestURI(v.field.String())
+		if err != nil {
+			return newValidationError(notAValidURLErrorMsg, cmsg, v.fieldName)
+		}
+
+		return nil
+	})
+
+	return v
+}
+
+// Email checks if the field is a valid email address format
+//
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
+func (v *StringValidator) Email(msg ...string) *StringValidator {
+	return v.Matches(emailRegex.String(), msg...)
+}
+
+// Uuid checks if the field is a valid UUID v4 format
+//
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
+func (v *StringValidator) Uuid(msg ...string) *StringValidator {
+	return v.Matches(uuidRegex.String(), msg...)
+}
+
+// Cuid checks if the field is a valid CUID format (Collision-resistant ids)
+// See: https://github.com/paralleldrive/cuid
+//
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
+func (v *StringValidator) Cuid(msg ...string) *StringValidator {
+	return v.Matches(cuidRegex.String(), msg...)
+}
+
+// HexColor checks if the field is a valid HEX color format
+// It supports both 3 and 6 characters long hex color and alpha values
+// Example: #fff, #ffffff, #fff0, #ffffff00
+//
+// NOTE: it is case insensitive and it accepts both #
+//
+// if the string is empty, it will not return error, use [StringValidator.NonEmpty] to check for empty strings
+func (v *StringValidator) HexColor(msg ...string) *StringValidator {
+	return v.Matches(hexColorRegex.String(), msg...)
 }
