@@ -3,13 +3,17 @@ package corretto
 import (
 	"reflect"
 	"regexp"
+	"strings"
 )
 
 const (
 	notAStringErrorMsg      = "%v is not a string"
+	mustIncludeErrorMsg     = "%v must include %v"
 	stringMinLengthErrorMsg = "%v must be at least %v characters long"
 	matchesErrorMsg         = "%v is not in the correct format"
 	nonEmptyErrorMsg        = "%v cannot be empty"
+	mustStartWithErrorMsg   = "%v must start with %v"
+	mustEndWithErrorMsg     = "%v must end with %v"
 )
 
 const (
@@ -105,6 +109,56 @@ func (v *StringValidator) OneOf(allowed []string, msg ...string) *StringValidato
 	v.validations = append(v.validations, func() error {
 		if !oneOf(v.field.String(), allowed) {
 			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// Includes checks if the field value contains the provided substring
+//
+// NOTE: it is case sensitive
+//
+// If you want to check only for prefix or suffix, use [StringValidator.StartsWith] or [StringValidator.EndsWith]
+func (v *StringValidator) Includes(substr string, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !strings.Contains(v.field.String(), substr) {
+			return newValidationError(mustIncludeErrorMsg, cmsg, v.fieldName, substr)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// StartsWith checks if the field value starts with the provided prefix
+//
+// NOTE: it is case sensitive
+func (v *StringValidator) StartsWith(prefix string, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !strings.HasPrefix(v.field.String(), prefix) {
+			return newValidationError(mustStartWithErrorMsg, cmsg, v.fieldName, prefix)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// EndsWith checks if the field value ends with the provided suffix
+//
+// NOTE: it is case sensitive
+func (v *StringValidator) EndsWith(suffix string, msg ...string) *StringValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if !strings.HasSuffix(v.field.String(), suffix) {
+			return newValidationError(mustEndWithErrorMsg, cmsg, v.fieldName, suffix)
 		}
 		return nil
 	})

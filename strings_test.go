@@ -174,3 +174,84 @@ func TestStringPredefinedRegex(t *testing.T) {
 		}
 	})
 }
+
+func TestStringIncludes(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	schema := Schema{
+		"stringField": Field().String().Includes("foo"),
+	}
+
+	tests := []struct {
+		name        string
+		stringField string
+		expectError bool
+	}{
+		{"empty string", "", true},
+		{"string containing value", "foo", false},
+		{"string without value", "bar", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ stringField string }{stringField: tc.stringField})
+			if tc.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
+
+func TestStringStartsWith(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	schema := Schema{
+		"stringField": Field().String().StartsWith("foo"),
+	}
+
+	tests := []struct {
+		name        string
+		stringField string
+		expectError bool
+	}{
+		{"empty string", "", true},
+		{"string starting with prefix", "foobar", false},
+		{"string not starting with prefix", "barfoo", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ stringField string }{stringField: tc.stringField})
+			if tc.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
+
+func TestStringEndsWith(t *testing.T) {
+	logger.SetOutput(io.Discard)
+
+	schema := Schema{
+		"stringField": Field().String().EndsWith("foo"),
+	}
+
+	tests := []struct {
+		name        string
+		stringField string
+		expectError bool
+	}{
+		{"empty string", "", true},
+		{"string ending with suffix", "barfoo", false},
+		{"string not ending with suffix", "foobar", true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ stringField string }{stringField: tc.stringField})
+			if tc.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
