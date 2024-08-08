@@ -3,6 +3,7 @@ package corretto
 import (
 	"fmt"
 	"io"
+	"math"
 	"testing"
 )
 
@@ -340,4 +341,78 @@ func TestNumberAliases(t *testing.T) {
 			})
 		}
 	})
+}
+
+func TestNumberMultipleOf(t *testing.T) {
+	schema := Schema{
+		"Field1": Field().Number().MultipleOf(3),
+	}
+
+	tests := []struct {
+		name        string
+		value       any
+		expectError bool
+	}{
+		{
+			name:        "multiple of",
+			value:       6,
+			expectError: false,
+		},
+		{
+			name:        "not multiple of",
+			value:       5,
+			expectError: true,
+		},
+		{
+			name:        "zero",
+			value:       0,
+			expectError: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+			if tt.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
+}
+
+func TestNumberFinite(t *testing.T) {
+	schema := Schema{
+		"Field1": Field().Number().Finite(),
+	}
+
+	tests := []struct {
+		name        string
+		value       any
+		expectError bool
+	}{
+		{
+			name:        "finite",
+			value:       42,
+			expectError: false,
+		},
+		{
+			name:        "positive infinity",
+			value:       math.Inf(1),
+			expectError: true,
+		},
+		{
+			name:        "negative infinity",
+			value:       math.Inf(-1),
+			expectError: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := schema.Parse(&struct{ Field1 any }{Field1: tt.value})
+			if tt.expectError && err == nil {
+				t.Errorf("Parse() should have returned an error")
+			}
+		})
+	}
 }

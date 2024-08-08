@@ -1,6 +1,7 @@
 package corretto
 
 import (
+	"math"
 	"reflect"
 	"slices"
 )
@@ -15,6 +16,8 @@ const (
 	notANegativeNumberMsg    = "%v must be a negative number"
 	notANonNegativeNumberMsg = "%v must be a non-negative number"
 	notANonPositiveNumberMsg = "%v must be a non-positive number"
+	notAMultipleOfMsg        = "%v must be a multiple of %v"
+	notAFiniteNumberMsg      = "%v must be a finite number"
 	zeroNumberErrorMsg       = "%v is required"
 	minNumberErrorMsg        = "%v must be at least %v"
 	maxNumberErrorMsg        = "%v must be less than %v"
@@ -158,6 +161,45 @@ func (v *NumberValidator) OneOf(allowed []int, msg ...string) *NumberValidator {
 	v.validations = append(v.validations, func() error {
 		if !oneOf(int(v.field.Int()), allowed) {
 			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// MultipleOf checks if the field value is a multiple of the provided divisor
+//
+// NOTE: By definition, 0 is a multiple of any number, so if the field value is 0, this validation will always pass
+func (v *NumberValidator) MultipleOf(divisor int, msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if int(v.field.Int())%divisor != 0 {
+			return newValidationError(notAMultipleOfMsg, cmsg, v.fieldName, divisor)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// Finite checks if the field value is a finite number, i.e., not infinite
+func (v *NumberValidator) Finite(msg ...string) *NumberValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		switch v.field.Kind() {
+		case reflect.Float64, reflect.Float32:
+			if math.IsInf(v.field.Float(), 0) {
+				return newValidationError(notAFiniteNumberMsg, cmsg, v.fieldName)
+			}
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if math.IsInf(float64(v.field.Int()), 0) {
+				return newValidationError(notAFiniteNumberMsg, cmsg, v.fieldName)
+			}
+		default:
+			logger.Panicf("unsupported type %v for Finite(), can only be used with int or float", v.field.Kind())
 		}
 		return nil
 	})
