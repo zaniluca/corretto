@@ -1,13 +1,10 @@
 package corretto
 
 import (
-	"io"
 	"testing"
 )
 
 func TestArray(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"arrayField": Field().Array(),
 	}
@@ -33,8 +30,6 @@ func TestArray(t *testing.T) {
 }
 
 func TestArrayOf(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	type innerStruct struct {
 		innerField int
 	}

@@ -103,6 +103,7 @@ func oneOf[T comparable](v T, allowed []T) bool {
 // Example:
 //
 //	Field("Name")
+//	Field("Name", "MyName") // This will log a warning and use "Name" as the field name
 func Field(fieldName ...string) *BaseValidator {
 	name := optional(fieldName)
 

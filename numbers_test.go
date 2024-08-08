@@ -2,14 +2,11 @@ package corretto
 
 import (
 	"fmt"
-	"io"
 	"math"
 	"testing"
 )
 
 func TestNumber(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"Field1": Field().Number(),
 	}
@@ -62,8 +59,6 @@ func TestNumber(t *testing.T) {
 }
 
 func TestNumberMin(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	tests := []struct {
 		name        string
 		value       int
@@ -105,8 +100,6 @@ func TestNumberMin(t *testing.T) {
 }
 
 func TestNumberCustomValidation(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().Number().Test(func(ctx Context, field int) error {
 			if field == 41 {
@@ -159,9 +152,7 @@ func TestNumberCustomValidation(t *testing.T) {
 }
 
 func TestNumberOneOf(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
-	s := Schema{
+	schema := Schema{
 		"Field1": Field().Number().OneOf([]int{1, 2, 3}),
 	}
 
@@ -184,7 +175,7 @@ func TestNumberOneOf(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.Parse(&struct{ Field1 int }{Field1: tt.value})
+			err := schema.Parse(&struct{ Field1 int }{Field1: tt.value})
 			if tt.expectError && err == nil {
 				t.Errorf("Parse() should have returned an error")
 			}

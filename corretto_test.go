@@ -1,13 +1,10 @@
 package corretto
 
 import (
-	"io"
 	"testing"
 )
 
 func TestValidationOpts(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	t.Run("custom message for validation", func(t *testing.T) {
 		tests := []struct {
 			name          string

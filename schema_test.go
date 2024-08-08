@@ -2,17 +2,21 @@ package corretto
 
 import (
 	"io"
+	"os"
 	"testing"
 )
 
 func TestParse(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	t.Run("panics if schema has unknown field", func(t *testing.T) {
+		// Discard panic logs since they are expected
+		logger.SetOutput(io.Discard)
+
 		defer func() {
 			if r := recover(); r == nil {
 				t.Errorf("Parse() should have panicked")
 			}
+
+			logger.SetOutput(os.Stderr)
 		}()
 
 		schema := Schema{
@@ -39,8 +43,6 @@ func TestParse(t *testing.T) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	tests := []struct {
 		name        string
 		bytes       []byte
@@ -92,8 +94,6 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestConcat(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	s := &struct{ Field1, Field2 string }{Field1: "John"}
 	schema := Schema{
 		"Field1": Field().String().NonEmpty(),
@@ -115,8 +115,6 @@ func TestConcat(t *testing.T) {
 }
 
 func TestNestedSchemas(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	t.Run("validates nested field", func(t *testing.T) {
 		type Nested struct {
 			NestedField1 int
@@ -154,10 +152,15 @@ func TestNestedSchemas(t *testing.T) {
 	})
 
 	t.Run("panics if field is not exported", func(t *testing.T) {
+		// Discard panic logs since they are expected
+		logger.SetOutput(io.Discard)
+
 		defer func() {
 			if r := recover(); r == nil {
 				t.Errorf("Parse() should have panicked")
 			}
+
+			logger.SetOutput(os.Stderr)
 		}()
 
 		type Nested struct {

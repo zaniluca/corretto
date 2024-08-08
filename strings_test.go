@@ -2,13 +2,10 @@ package corretto
 
 import (
 	"fmt"
-	"io"
 	"testing"
 )
 
 func TestString(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String(),
 	}
@@ -34,8 +31,6 @@ func TestString(t *testing.T) {
 }
 
 func TestStringNonEmpty(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().NonEmpty(),
 	}
@@ -61,8 +56,6 @@ func TestStringNonEmpty(t *testing.T) {
 }
 
 func TestStringMinLength(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().MinLength(5),
 	}
@@ -88,8 +81,6 @@ func TestStringMinLength(t *testing.T) {
 }
 
 func TestStringCustomValidation(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().Test(func(ctx Context, field string) error {
 			if field == "foo" {
@@ -120,8 +111,6 @@ func TestStringCustomValidation(t *testing.T) {
 }
 
 func TestStringOneOf(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().OneOf([]string{"foo", "bar"}),
 	}
@@ -147,8 +136,6 @@ func TestStringOneOf(t *testing.T) {
 }
 
 func TestStringPredefinedRegex(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	t.Run("email", func(t *testing.T) {
 		schema := Schema{
 			"Email": Field().String().Email(),
@@ -261,8 +248,6 @@ func TestStringPredefinedRegex(t *testing.T) {
 }
 
 func TestStringIncludes(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().Includes("foo"),
 	}
@@ -288,8 +273,6 @@ func TestStringIncludes(t *testing.T) {
 }
 
 func TestStringStartsWith(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().StartsWith("foo"),
 	}
@@ -315,8 +298,6 @@ func TestStringStartsWith(t *testing.T) {
 }
 
 func TestStringEndsWith(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"stringField": Field().String().EndsWith("foo"),
 	}
@@ -342,8 +323,6 @@ func TestStringEndsWith(t *testing.T) {
 }
 
 func TestStringUrl(t *testing.T) {
-	logger.SetOutput(io.Discard)
-
 	schema := Schema{
 		"url": Field().String().Url(),
 	}
