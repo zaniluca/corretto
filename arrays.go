@@ -32,6 +32,7 @@ func (v *ArrayValidator) NonEmpty(msg ...string) *ArrayValidator {
 	return v
 }
 
+// MinLength checks if the array has a length greater than or equal to the provided value
 func (v *ArrayValidator) MinLength(min int, msg ...string) *ArrayValidator {
 	cmsg := optional(msg)
 
@@ -45,7 +46,41 @@ func (v *ArrayValidator) MinLength(min int, msg ...string) *ArrayValidator {
 	return v
 }
 
-// Test allows you to run a custom validation function
+// MaxLength checks if the array has a length less than or equal to the provided value
+func (v *ArrayValidator) MaxLength(max int, msg ...string) *ArrayValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Len() > max {
+			return newValidationError(arrayMinLengthErrorMsg, cmsg, v.fieldName, max)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// Length checks if the array has a length equal to the provided value
+func (v *ArrayValidator) Length(length int, msg ...string) *ArrayValidator {
+	cmsg := optional(msg)
+
+	v.validations = append(v.validations, func() error {
+		if v.field.Len() != length {
+			return newValidationError(arrayMinLengthErrorMsg, cmsg, v.fieldName, length)
+		}
+		return nil
+	})
+
+	return v
+}
+
+// Test allows you to run a custom validation function on the array
+//
+// The function should have the signature:
+//
+//	func (ctx corretto.Context, value reflect.Value) error
+//
+// The function will receive the context and the array as a [reflect.Value], you can convert it to the correct type using the `Slice` method of the [reflect.Value]
 func (v *ArrayValidator) Test(f CustomValidationFunc[reflect.Value]) *ArrayValidator {
 	v.validations = append(v.validations, func() error {
 		return f(v.ctx, v.field.Slice(0, v.field.Cap()))

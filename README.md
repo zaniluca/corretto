@@ -108,7 +108,7 @@ If you want to customize the entire error message, you can pass a second argumen
 // The error message will be "Name not long enough"
 s := c.Schema{
     "FirstName": c.Field("Name")
-    							.String()
+    			  .String()
                   .MinLength(3, "%v not long enough (min %v)"),
   // ...
 }
@@ -189,70 +189,6 @@ userSchema := c.Schema{
 ```
 
 > Note: in this case `Address` was an **exported** field, if it was unexported the validator would not be able to access it and will panic.
-
-## Package
-
-### `corretto`
-
-#### `Schema`
-
-This simply an alias for `map[string]*Validator`
-
-#### `Field(fieldName ...string) *Validator`
-
-Returns a new `*Validator` with the given field name. If no field name is provided, the field name will be the same as the struct field name.
-
-#### `(s Schema) Parse(value any) error`
-
-Checks that the given value conforms to the schema. If the value does not conform to the schema, an error is returned.
-
-If the struct contains a field that is not present in the schema it will **panic**.
-
-> Note: This method will not modify the value, it will only check that it conforms to the schema.
-
-#### `(s Schema) MustParse(value any)`
-
-Like `Parse`, but panics if the value does not conform to the schema.
-
-#### `(s Schema) Concat(other Schema)`
-
-Returns a new `Schema` that is the combination of the two schemas. If a field is present in both schemas, the field from the second schema will be used.
-
-#### `(s Schema) Unmarshal(data []byte, value any) error`
-
-Unmarshals the given JSON data into the given value and checks that it conforms to the schema. If the value does not conform to the schema, an error is returned.
-
-### Mixed
-
-A list of all the methods that can be called on a `*Validator` with no specific type.
-
-> Mixed methods are available for most of the basic types like `int`, `string`, `float`, etc. If a type is not supported they will **panic**
-
-#### `(*Validator) Required(msg ...string) *Validator`
-
-Checks that the value is not `nil` or the zero value for the type.
-
-#### `(*Validator) Min(min int, msg ...string) *Validator`
-
-Checks that the value is greater than or equal to the given minimum value.
-
-#### `(*Validator) Max(max int, msg ...string) *Validator`
-
-Checks that the value is less than or equal to the given maximum value.
-
-### Strings
-
-Methods that can be called on a `*Validator` applied to a `string`
-
-#### `(v *Validator) Matches(regex string, msg ...string) *Validator`
-
-Matches checks if the field matches the provided regex pattern
-
-if the string is empty, it will return true, use `Required()` to check for empty strings
-
-Corretto also provides some predefined regex validations:
-
-#### `(v *Validator) Email(msg ...string) *Validator`
 
 ## License
 

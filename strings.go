@@ -38,6 +38,7 @@ type StringValidator struct {
 	*BaseValidator
 }
 
+// String checks if the field is a string
 func (v *BaseValidator) String(msg ...string) *StringValidator {
 	cmsg := optional(msg)
 
@@ -107,6 +108,10 @@ func (v *StringValidator) Length(l int, msg ...string) *StringValidator {
 }
 
 // Test allows you to run a custom validation function
+//
+// The function should have the signature:
+//
+//	func(ctx corretto.Context, value string) error
 func (v *StringValidator) Test(f CustomValidationFunc[string]) *StringValidator {
 	v.validations = append(v.validations, func() error {
 		return f(v.ctx, v.field.String())

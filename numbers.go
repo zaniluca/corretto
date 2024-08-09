@@ -27,6 +27,7 @@ type NumberValidator struct {
 	*BaseValidator
 }
 
+// Number checks if the field is a number, either an integer or a float
 func (v *BaseValidator) Number(msg ...string) *NumberValidator {
 	cmsg := optional(msg)
 	numbers := []reflect.Kind{reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64}
@@ -147,19 +148,45 @@ func (v *NumberValidator) Max(max int, msg ...string) *NumberValidator {
 }
 
 // Test allows you to run a custom validation function
+//
+// The function should have the signature:
+//
+//	func(ctx corretto.Context, value int) error
+//
+// NOTE: Currently custom validation can only be used with Integers. If the field is a float, it will be converted to an int before being passed to the function
 func (v *NumberValidator) Test(f CustomValidationFunc[int]) *NumberValidator {
 	v.validations = append(v.validations, func() error {
-		return f(v.ctx, int(v.field.Int()))
+		switch v.field.Kind() {
+		case reflect.Float64, reflect.Float32:
+			return f(v.ctx, int(v.field.Float()))
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			return f(v.ctx, int(v.field.Int()))
+		default:
+			logger.Panicf("unsupported type %v for Test(), can only be used with int or float", v.field.Kind())
+		}
+		return nil
 	})
 	return v
 }
 
 // OneOf checks if the field value contains one of the provided values
+//
+// NOTE: This validation can only be used with Integers. If the field is a float, it will be converted to an int before being checked
 func (v *NumberValidator) OneOf(allowed []int, msg ...string) *NumberValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
-		if !oneOf(int(v.field.Int()), allowed) {
+		var val int
+		switch v.field.Kind() {
+		case reflect.Float64, reflect.Float32:
+			val = int(v.field.Float())
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			val = int(v.field.Int())
+		default:
+			logger.Panicf("unsupported type %v for OneOf(), can only be used with int or float", v.field.Kind())
+		}
+
+		if !oneOf(val, allowed) {
 			return newValidationError(oneOfErrorMsg, cmsg, v.fieldName, allowed)
 		}
 		return nil
@@ -171,11 +198,21 @@ func (v *NumberValidator) OneOf(allowed []int, msg ...string) *NumberValidator {
 // MultipleOf checks if the field value is a multiple of the provided divisor
 //
 // NOTE: By definition, 0 is a multiple of any number, so if the field value is 0, this validation will always pass
+// NOTE: This validation can only be used with Integers. If the field is a float, it will be converted to an int before being checked
 func (v *NumberValidator) MultipleOf(divisor int, msg ...string) *NumberValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
-		if int(v.field.Int())%divisor != 0 {
+		var val int
+		switch v.field.Kind() {
+		case reflect.Float64, reflect.Float32:
+			val = int(v.field.Float())
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			val = int(v.field.Int())
+		default:
+			logger.Panicf("unsupported type %v for MultipleOf(), can only be used with int or float", v.field.Kind())
+		}
+		if val%divisor != 0 {
 			return newValidationError(notAMultipleOfMsg, cmsg, v.fieldName, divisor)
 		}
 		return nil
