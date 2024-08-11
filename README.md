@@ -108,7 +108,7 @@ If you want to customize the entire error message, you can pass a second argumen
 // The error message will be "Name not long enough"
 s := c.Schema{
     "FirstName": c.Field("Name")
-    			  .String()
+                  .String()
                   .MinLength(3, "%v not long enough (min %v)"),
   // ...
 }
