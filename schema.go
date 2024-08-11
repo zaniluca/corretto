@@ -31,10 +31,10 @@ func (v *BaseValidator) Schema(s Schema) *BaseValidator {
 //
 // Example:
 //
-//		schema := Schema{
-//			"FirstName": Field("Name").String().MinLength(3).Test(customValidation),
-//			"Age":       Field().Number().Min(18),
-//			"Email":     Field().String().Email(),
+//		schema := corretto.Schema{
+//			"FirstName": corretto.Field("Name").String().MinLength(3).Test(customValidation),
+//			"Age":       corretto.Field().Number().Min(18),
+//			"Email":     corretto.Field().String().Email(),
 //		}
 //		user := User{
 //			FirstName: "John",

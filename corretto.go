@@ -56,7 +56,6 @@ func (v *BaseValidator) check() error {
 }
 
 // Represents a validator for a field
-// TODO: Maybe call it AnyValidator? or FieldValidator?
 type BaseValidator struct {
 	ctx         Context          // The context of the validation, usually the struct that contains the field
 	fieldName   string           // The name of the field to be displayed in the error message, by default it uses the struct field name
