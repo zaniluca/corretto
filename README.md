@@ -6,6 +6,9 @@ The library is inspired by popular JavaScript libraries like [Yup](https://githu
 
 ## Getting Started
 
+> [!WARNING]  
+> This library is still in development, and the API is subject to change until the first stable release.
+
 ```bash
 go get github.com/zaniluca/corretto
 ```
