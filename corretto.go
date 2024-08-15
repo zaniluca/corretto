@@ -30,7 +30,7 @@ type ValidationFunc func() error
 //	}
 type Context any
 
-type CustomValidationFunc[V any] func(ctx Context, value V) error
+type CustomValidationFunc func(ctx Context) error
 
 type validator interface {
 	getBaseValidator() *BaseValidator

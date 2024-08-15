@@ -2,7 +2,6 @@ package corretto
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 )
 
@@ -57,7 +56,7 @@ func TestArrayLength(t *testing.T) {
 }
 
 func TestArrayCustomValidation(t *testing.T) {
-	onlyPositiveIntegers := func(ctx Context, value reflect.Value) error {
+	onlyPositiveIntegers := func(ctx Context) error {
 		// if flag is set to true, the array must only contain positive integers
 
 		// Testing cross-field validation
@@ -69,9 +68,9 @@ func TestArrayCustomValidation(t *testing.T) {
 			return nil
 		}
 
-		for i := 0; i < value.Len(); i++ {
-			elem := value.Index(i)
-			if elem.Kind() != reflect.Int || elem.Int() <= 0 {
+		for i := 0; i < len(v.arrayField); i++ {
+			elem := v.arrayField[i]
+			if elem <= 0 {
 				return fmt.Errorf("Array must only contain positive integers")
 			}
 		}

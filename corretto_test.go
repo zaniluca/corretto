@@ -2,7 +2,6 @@ package corretto
 
 import (
 	"fmt"
-	"reflect"
 	"testing"
 )
 
@@ -63,18 +62,12 @@ func TestKitchenSink(t *testing.T) {
 		Hobbies   []string
 	}
 
-	uniqueHobbies := func(ctx Context, value reflect.Value) error {
-		// Ensure value is a slice
-		if value.Kind() != reflect.Slice {
-			return fmt.Errorf("expected a slice, got %s", value.Kind())
-		}
-
-		// Get the length of the slice
-		length := value.Len()
-
+	uniqueHobbies := func(ctx Context) error {
+		hobbies := ctx.(user).Hobbies
 		unique := make(map[string]struct{})
-		for i := 0; i < length; i++ {
-			hobby := value.Index(i).String()
+
+		for i := 0; i < len(hobbies); i++ {
+			hobby := hobbies[i]
 			if _, ok := unique[hobby]; ok {
 				return fmt.Errorf("Hobbies must be unique")
 			}
@@ -93,14 +86,14 @@ func TestKitchenSink(t *testing.T) {
 		"Hobbies":   Field().Array().Of(Field().String().NonEmpty()).MaxLength(5).Test(uniqueHobbies),
 	}
 
-	hasParentLastName := func(ctx Context, value reflect.Value) error {
+	hasParentLastName := func(ctx Context) error {
 		parent, ok := ctx.(user)
 		if !ok {
 			return fmt.Errorf("expected context to be of type user, got %T", ctx)
 		}
 
-		for i := 0; i < value.Len(); i++ {
-			child := value.Index(i).Interface().(user)
+		for i := 0; i < len(parent.Children); i++ {
+			child := parent.Children[i]
 			if child.LastName != parent.LastName {
 				return fmt.Errorf("Children must have the same last name as the parent")
 			}

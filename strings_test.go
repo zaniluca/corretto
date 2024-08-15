@@ -82,8 +82,9 @@ func TestStringMinLength(t *testing.T) {
 
 func TestStringCustomValidation(t *testing.T) {
 	schema := Schema{
-		"stringField": Field().String().Test(func(ctx Context, field string) error {
-			if field == "foo" {
+		"stringField": Field().String().Test(func(ctx Context) error {
+			s := ctx.(struct{ stringField any })
+			if s.stringField == "foo" {
 				return nil
 			}
 			return fmt.Errorf("field must be 'foo'")

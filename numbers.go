@@ -151,20 +151,10 @@ func (v *NumberValidator) Max(max int, msg ...string) *NumberValidator {
 //
 // The function should have the signature:
 //
-//	func(ctx corretto.Context, value int) error
-//
-// NOTE: Currently custom validation can only be used with Integers. If the field is a float, it will be converted to an int before being passed to the function
-func (v *NumberValidator) Test(f CustomValidationFunc[int]) *NumberValidator {
+//	func(ctx corretto.Context) error
+func (v *NumberValidator) Test(f CustomValidationFunc) *NumberValidator {
 	v.validations = append(v.validations, func() error {
-		switch v.field.Kind() {
-		case reflect.Float64, reflect.Float32:
-			return f(v.ctx, int(v.field.Float()))
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-			return f(v.ctx, int(v.field.Int()))
-		default:
-			logger.Panicf("unsupported type %v for Test(), can only be used with int or float", v.field.Kind())
-		}
-		return nil
+		return f(v.ctx)
 	})
 	return v
 }

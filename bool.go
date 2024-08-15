@@ -26,10 +26,10 @@ func (v *BaseValidator) Bool(msg ...string) *BoolValidator {
 //
 // The function should have the signature:
 //
-//	func(ctx corretto.Context, value bool) error
-func (v *BoolValidator) Test(f CustomValidationFunc[bool]) *BoolValidator {
+//	func(ctx corretto.Context) error
+func (v *BoolValidator) Test(f CustomValidationFunc) *BoolValidator {
 	v.validations = append(v.validations, func() error {
-		return f(v.ctx, v.field.Bool())
+		return f(v.ctx)
 	})
 	return v
 }

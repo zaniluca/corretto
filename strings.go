@@ -111,10 +111,10 @@ func (v *StringValidator) Length(l int, msg ...string) *StringValidator {
 //
 // The function should have the signature:
 //
-//	func(ctx corretto.Context, value string) error
-func (v *StringValidator) Test(f CustomValidationFunc[string]) *StringValidator {
+//	func(ctx corretto.Context) error
+func (v *StringValidator) Test(f CustomValidationFunc) *StringValidator {
 	v.validations = append(v.validations, func() error {
-		return f(v.ctx, v.field.String())
+		return f(v.ctx)
 	})
 	return v
 }

@@ -101,8 +101,9 @@ func TestNumberMin(t *testing.T) {
 
 func TestNumberCustomValidation(t *testing.T) {
 	schema := Schema{
-		"stringField": Field().Number().Test(func(ctx Context, field int) error {
-			if field == 41 {
+		"stringField": Field().Number().Test(func(ctx Context) error {
+			v := ctx.(struct{ stringField any })
+			if v.stringField == 41 {
 				return nil
 			}
 			return fmt.Errorf("field must be 41")

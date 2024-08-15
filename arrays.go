@@ -78,12 +78,10 @@ func (v *ArrayValidator) Length(length int, msg ...string) *ArrayValidator {
 //
 // The function should have the signature:
 //
-//	func (ctx corretto.Context, value reflect.Value) error
-//
-// The function will receive the context and the array as a [reflect.Value], you can convert it to the correct type using the `Slice` method of the [reflect.Value]
-func (v *ArrayValidator) Test(f CustomValidationFunc[reflect.Value]) *ArrayValidator {
+//	func (ctx corretto.Context) error
+func (v *ArrayValidator) Test(f CustomValidationFunc) *ArrayValidator {
 	v.validations = append(v.validations, func() error {
-		return f(v.ctx, v.field.Slice(0, v.field.Cap()))
+		return f(v.ctx)
 	})
 	return v
 }
