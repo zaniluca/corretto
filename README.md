@@ -51,11 +51,12 @@ func main() {
 
 - [The Schema](#the-schema)
   - [Validation](#validation)
-  - [Custom validations](#custom-validations)
-    - [Customizing errors](#customizing-errors)
   - [Composition and Reuse](#composition-and-reuse)
   - [Primitive Validators](#primitive-validators)
   - [Nested Schemas](#nested-schemas)
+  - [Custom validations](#custom-validations)
+    - [Customizing errors](#customizing-errors)
+- [Full Documentation](#full-documentation)
 - [License](#license)
 
 ## The Schema
@@ -85,36 +86,6 @@ err := schema.Unmarshal(json, u)
 ```
 
 > There are also `MustParse` and `MustUnmarshal` methods that will panic if the value does not conform to the schema.
-
-### Custom validations
-
-TODO
-
-#### Customizing errors
-
-You can customize the field name in the error message by passing it as an argument to the `Field()` func.
-
-```go
-// The error message will be "Name must be at least 3 characters long"
-s := c.Schema{
-    "FirstName": c.Field("Name").String().MinLength(3),
-    // ...
-}
-```
-
-If you want to customize the entire error message, you can pass a second argument to most validation methods.
-
-```go
-// The error message will be "Name not long enough"
-s := c.Schema{
-    "FirstName": c.Field("Name")
-                  .String()
-                  .MinLength(3, "%v not long enough (min %v)"),
-  // ...
-}
-```
-
-> As you can see `Min` accepts passing a string with placeholders like you do in the `fmt` package. The first placeholder will be replaced with the field name, and the second with the value of the `Min(3)` method (in this case, 3), if the method has more than one argument or none it will have an according number of placeholders.
 
 ### Composition and Reuse
 
@@ -150,11 +121,11 @@ schema := c.Schema{
 }
 ```
 
-When applying a primitive validator to a field, the field will be restricted to the type of the primitive validator, and only the methods that are valid for that type will be available. For example, if you apply the `Email()` validator to a field, you will only be able to use string methods (and base ones like `Required()`) on that field.
+When applying a primitive validator to a field, the field will be restricted to the type of the primitive validator, and only the methods that are valid for that type will be available. For example, if you apply the `Email()` validator to a field, you will only be able to use string methods.
 
 This means that you'll get a compile-time error if you try to use a method that is not valid for the type of the field. _(and also methods suggestions from your IDE)_
 
-Currently we support `String()` and `Array()` as primitive validators.
+Primitive validators are: `String()`, `Number()`, `Boolean()` and `Array()`
 
 ### Nested Schemas
 
@@ -189,6 +160,62 @@ userSchema := c.Schema{
 ```
 
 > Note: in this case `Address` was an **exported** field, if it was unexported the validator would not be able to access it and will panic.
+
+### Custom validations
+
+If there is no built-in validation method that suits your needs or you need to perform a more complex validation (like comparing two fields), you can use the `Test()` method to define a custom validation function.
+
+```go
+type User struct {
+    Age int
+    HasLicense bool
+}
+
+s := c.Schema{
+    "Age": c.Field().Number().Positive(),
+    "HasLicense": c.Field().Test(func(ctx c.Context, value bool) error {
+        user := ctx.(User)
+        if user.Age < 18 && value {
+            return fmt.Errorf("User must be at least 18 to have a license")
+        }
+        return nil
+    }),
+}
+```
+
+As you can see the required signature for the test function is `func(ctx c.Context, value interface{}) error`, where `ctx` simply is the value of the struct being validated and `value` is the value of the field being validated _(typed accordingly, in this example is typed as a `bool`)_ the function should return an error if the validation fails.
+
+> Note: the `Test()` applied to an `Array()` field will require the signature `func(ctx c.Context, value reflect.Value) error`
+
+#### Customizing errors
+
+You can customize the field name in the error message by passing it as an argument to the `Field()` func.
+
+```go
+// The error message will be "Name must be at least 3 characters long"
+s := c.Schema{
+    "FirstName": c.Field("Name").String().MinLength(3),
+    // ...
+}
+```
+
+If you want to customize the entire error message, you can pass a second argument to most validation methods.
+
+```go
+// The error message will be "Name not long enough"
+s := c.Schema{
+    "FirstName": c.Field("Name")
+                  .String()
+                  .MinLength(3, "%v not long enough (min %v)"),
+  // ...
+}
+```
+
+> As you can see `Min` accepts passing a string with placeholders like you do in the `fmt` package. The first placeholder will be replaced with the field name, and the second with the value of the `Min(3)` method (in this case, 3), if the method has more than one argument or none it will have an according number of placeholders.
+
+## Full Documentation
+
+The library is still in development, and the documentation is not complete yet. If you want to know more about the available methods, you can check the [godoc](https://pkg.go.dev/github.com/zaniluca/corretto).
 
 ## License
 

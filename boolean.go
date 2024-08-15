@@ -21,3 +21,15 @@ func (v *BaseValidator) Boolean(msg ...string) *BooleanValidator {
 
 	return &BooleanValidator{v}
 }
+
+// Test allows you to run a custom validation function
+//
+// The function should have the signature:
+//
+//	func(ctx corretto.Context, value bool) error
+func (v *BooleanValidator) Test(f CustomValidationFunc[bool]) *BooleanValidator {
+	v.validations = append(v.validations, func() error {
+		return f(v.ctx, v.field.Bool())
+	})
+	return v
+}
