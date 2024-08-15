@@ -125,7 +125,7 @@ When applying a primitive validator to a field, the field will be restricted to 
 
 This means that you'll get a compile-time error if you try to use a method that is not valid for the type of the field. _(and also methods suggestions from your IDE)_
 
-Primitive validators are: `String()`, `Number()`, `Boolean()` and `Array()`
+Primitive validators are: `String()`, `Number()`, `Bool()` and `Array()`
 
 ### Nested Schemas
 
@@ -173,7 +173,7 @@ type User struct {
 
 s := c.Schema{
     "Age": c.Field().Number().Positive(),
-    "HasLicense": c.Field().Test(func(ctx c.Context, value bool) error {
+    "HasLicense": c.Field().Bool().Test(func(ctx c.Context, value bool) error {
         user := ctx.(User)
         if user.Age < 18 && value {
             return fmt.Errorf("User must be at least 18 to have a license")

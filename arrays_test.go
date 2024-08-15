@@ -81,7 +81,7 @@ func TestArrayCustomValidation(t *testing.T) {
 
 	schema := Schema{
 		"arrayField":           Field().Array().Test(onlyPositiveIntegers),
-		"onlyPositiveIntegers": Field().Boolean(),
+		"onlyPositiveIntegers": Field().Bool(),
 	}
 
 	tests := []struct {

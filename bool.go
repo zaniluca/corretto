@@ -2,24 +2,24 @@ package corretto
 
 import "reflect"
 
-const notABooleanErrorMsg = "field %s is not a boolean"
+const notABoolErrorMsg = "field %s is not a boolean"
 
-type BooleanValidator struct {
+type BoolValidator struct {
 	*BaseValidator
 }
 
-// Boolean checks if the field is a boolean
-func (v *BaseValidator) Boolean(msg ...string) *BooleanValidator {
+// Bool checks if the field is a boolean
+func (v *BaseValidator) Bool(msg ...string) *BoolValidator {
 	cmsg := optional(msg)
 
 	v.validations = append(v.validations, func() error {
 		if v.field.Kind() != reflect.Bool {
-			return newValidationError(notABooleanErrorMsg, cmsg, v.fieldName)
+			return newValidationError(notABoolErrorMsg, cmsg, v.fieldName)
 		}
 		return nil
 	})
 
-	return &BooleanValidator{v}
+	return &BoolValidator{v}
 }
 
 // Test allows you to run a custom validation function
@@ -27,7 +27,7 @@ func (v *BaseValidator) Boolean(msg ...string) *BooleanValidator {
 // The function should have the signature:
 //
 //	func(ctx corretto.Context, value bool) error
-func (v *BooleanValidator) Test(f CustomValidationFunc[bool]) *BooleanValidator {
+func (v *BoolValidator) Test(f CustomValidationFunc[bool]) *BoolValidator {
 	v.validations = append(v.validations, func() error {
 		return f(v.ctx, v.field.Bool())
 	})
