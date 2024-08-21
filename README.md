@@ -173,9 +173,10 @@ type User struct {
 
 s := c.Schema{
     "Age": c.Field().Number().Positive(),
-    "HasLicense": c.Field().Bool().Test(func(ctx c.Context, value bool) error {
+    "HasLicense": c.Field().Bool().Test(func(ctx c.Context) error {
         user := ctx.(User)
-        if user.Age < 18 && value {
+        // Example of cross-field validation
+        if user.Age < 18 && user.HasLicense {
             return fmt.Errorf("User must be at least 18 to have a license")
         }
         return nil
@@ -183,9 +184,7 @@ s := c.Schema{
 }
 ```
 
-As you can see the required signature for the test function is `func(ctx c.Context, value interface{}) error`, where `ctx` simply is the value of the struct being validated and `value` is the value of the field being validated _(typed accordingly, in this example is typed as a `bool`)_ the function should return an error if the validation fails.
-
-> Note: the `Test()` applied to an `Array()` field will require the signature `func(ctx c.Context, value reflect.Value) error`
+As you can see the required signature for the test function is `func(ctx c.Context) error`, where `ctx` simply is the value of the struct being validated.
 
 #### Customizing errors
 
